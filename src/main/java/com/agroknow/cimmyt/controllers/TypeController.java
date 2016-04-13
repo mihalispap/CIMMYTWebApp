@@ -27,10 +27,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 
 @RestController
-class TitleController {
+class TypeController {
 
-    @RequestMapping("/cimmyt/title/{title}")
-    String run(@PathVariable String title) {
+    @RequestMapping("/cimmyt/entity-type/{type}")
+    String run(@PathVariable String type) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "cimmyt").build();
@@ -46,7 +46,36 @@ class TitleController {
 					.setTypes("object")
 					.setSearchType(SearchType.SCAN)
 					.setScroll(new TimeValue(60000))
-					.setQuery(QueryBuilders.matchQuery("title.value", title))
+					.setQuery(QueryBuilders.matchQuery("type", type))
+					.execute().actionGet();
+	
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,response);
+		
+		client.close();
+		
+		//results="";
+    	return results;
+        
+    }
+    @RequestMapping("/cimmyt/type/{type}")
+    String runType(@PathVariable String type) {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "cimmyt").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		String results="";
+				
+			SearchResponse response=client.prepareSearch("cimmyt")
+					.setTypes("resource","dataset_software")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchQuery("type", type))
 					.execute().actionGet();
 	
 			BuildSearchResponse builder=new BuildSearchResponse();
@@ -59,52 +88,4 @@ class TitleController {
         
     }
     
-    @RequestMapping("/cimmyt/title/{title}/{type}")
-    String run(@PathVariable String title, @PathVariable String type) {
-        
-    	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
-    	
-    	Client client = new TransportClient(settings)
-		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
-		System.out.println("Status:"+client.settings().toString());
-		// on shutdown
-		String results="";
-		if(type.isEmpty())
-		{		
-			SearchResponse response=client.prepareSearch("cimmyt")
-					.setTypes("object")
-					.setSearchType(SearchType.SCAN)
-					.setScroll(new TimeValue(60000))
-					.setQuery(QueryBuilders.matchQuery("title.value", title))
-					.execute().actionGet();
-	
-			BuildSearchResponse builder=new BuildSearchResponse();
-			results=builder.buildFrom(client,response);
-		}
-		else
-		{
-			FilteredQueryBuilder build=
-					QueryBuilders.filteredQuery(QueryBuilders.matchQuery("title.value", title), 
-							FilterBuilders.termFilter("type", type));
-			
-			
-			SearchResponse response=client.prepareSearch("cimmyt")
-					.setTypes("object")
-					.setSearchType(SearchType.SCAN)
-					.setScroll(new TimeValue(60000))
-					.setQuery(build)
-					.execute().actionGet();
-			
-						
-			BuildSearchResponse builder=new BuildSearchResponse();
-			results=builder.buildFrom(client,response);
-		}
-		client.close();
-		
-		
-    	return results;
-        
-    }
 }

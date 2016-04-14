@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @RestController
 class IDController {
-    
+
     @RequestMapping("/cimmyt/id/{id}")
     String run(@PathVariable String id) {
         
@@ -36,7 +36,45 @@ class IDController {
     	
 		client.close();
 		
-    	return response.getSourceAsString();
+		String results="";
+		
+		int size=0;
+		if(!response.getSourceAsString().isEmpty())
+			size=1;
+		
+		results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+		
+    	return results;
+        
+    }
+    
+    @RequestMapping("/cimmyt/{type}/{id}")
+    String runObject(@PathVariable String type,@PathVariable String id) {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "cimmyt").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		
+		GetResponse response = client.prepareGet("cimmyt", type, id)
+		        .execute()
+		        .actionGet();
+    	
+		client.close();
+		
+		String results="";
+		
+		int size=0;
+		if(!response.getSourceAsString().isEmpty())
+			size=1;
+		
+		results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+		
+    	return results;
         
     }
 }

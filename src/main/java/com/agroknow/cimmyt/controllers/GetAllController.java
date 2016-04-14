@@ -48,16 +48,10 @@ public class GetAllController {
 			
 			TermsFacet f=(TermsFacet) response.getFacets()
 					.facetsAsMap().get("entity_types");
-	
-			results+="count:"+f.getTotalCount()+"{";
+			String facet_name="entity_types";
 			
-			for(TermsFacet.Entry entry : f)
-			{
-				results+="{"+entry.getTerm()+"}\n";
-			}
-			
-			//BuildSearchResponse builder=new BuildSearchResponse();
-			//results=builder.buildFrom(client,response);
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,f, response, facet_name);
 		
 		client.close();
 		
@@ -65,4 +59,47 @@ public class GetAllController {
     	return results;
         
     }
+	
+
+	@RequestMapping("/cimmyt/getall/locations")
+    String getAllLocations() {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "cimmyt").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		String results="";
+				
+			TermsFacetBuilder facet =
+					FacetBuilders.termsFacet("locations").field("location.value").size(99999);
+			
+			SearchResponse response=
+					client.prepareSearch("cimmyt")
+					.setTypes("person", "organization", 
+							"resource", "dataset_software")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchAllQuery())
+					.addFacet(facet)
+					.execute().actionGet();
+			
+			TermsFacet f=(TermsFacet) response.getFacets()
+					.facetsAsMap().get("locations");
+			String facet_name="locations";
+			
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,f, response, facet_name);
+		
+		client.close();
+		
+		//results="";
+    	return results;
+        
+    }
+	
+	
 }

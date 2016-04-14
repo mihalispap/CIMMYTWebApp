@@ -18,7 +18,7 @@ import com.agroknow.cimmyt.utils.BuildSearchResponse;
 @RestController
 public class LocationController {
 
-	@RequestMapping("/cimmyt/location/{location}")
+	@RequestMapping("/location/{location}")
     String runType(@PathVariable String location) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

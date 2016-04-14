@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RestController
 class TypeController {
 
-    @RequestMapping("/cimmyt/entity-type/{type}")
+    @RequestMapping("/entity-type/{type}")
     String run(@PathVariable String type) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -58,7 +58,7 @@ class TypeController {
     	return results;
         
     }
-    @RequestMapping("/cimmyt/type/{type}")
+    @RequestMapping("/type/{type}")
     String runType(@PathVariable String type) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

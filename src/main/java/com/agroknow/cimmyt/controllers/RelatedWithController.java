@@ -18,7 +18,7 @@ import com.agroknow.cimmyt.utils.BuildSearchResponse;
 @RestController
 public class RelatedWithController {
 
-	@RequestMapping("/cimmyt/related-with/{relation}")
+	@RequestMapping("/related-with/{relation}")
     String runType(@PathVariable String relation) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

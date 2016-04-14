@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RestController
 class TitleController {
 
-	@RequestMapping( value="/cimmyt/title", method={RequestMethod.GET})
+	@RequestMapping( value="/title", method={RequestMethod.GET})
     String run(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

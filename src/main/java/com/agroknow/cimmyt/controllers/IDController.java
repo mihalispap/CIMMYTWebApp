@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RestController
 class IDController {
 
-    @RequestMapping("/cimmyt/id/{id}")
+    @RequestMapping("/id/{id}")
     String run(@PathVariable String id) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -48,7 +48,7 @@ class IDController {
         
     }
     
-    @RequestMapping("/cimmyt/{type}/{id}")
+    @RequestMapping("/{type}/{id}")
     String runObject(@PathVariable String type,@PathVariable String id) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

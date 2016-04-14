@@ -21,7 +21,7 @@ import com.agroknow.cimmyt.utils.BuildSearchResponse;
 @RestController
 public class GetAllController {
 
-	@RequestMapping("/cimmyt/getall/entity-types")
+	@RequestMapping("/getall/entity-types")
     String getAllET() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -61,7 +61,7 @@ public class GetAllController {
     }
 	
 
-	@RequestMapping("/cimmyt/getall/locations")
+	@RequestMapping("/getall/locations")
     String getAllLocations() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -90,6 +90,46 @@ public class GetAllController {
 			TermsFacet f=(TermsFacet) response.getFacets()
 					.facetsAsMap().get("locations");
 			String facet_name="locations";
+			
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,f, response, facet_name);
+		
+		client.close();
+		
+		//results="";
+    	return results;
+        
+    }
+
+	@RequestMapping("/getall/relations")
+    String getAllRelations() {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "cimmyt").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		String results="";
+				
+			TermsFacetBuilder facet =
+					FacetBuilders.termsFacet("relations").field("relation").size(99999);
+			
+			SearchResponse response=
+					client.prepareSearch("cimmyt")
+					.setTypes("person", "organization", 
+							"resource", "dataset_software")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchAllQuery())
+					.addFacet(facet)
+					.execute().actionGet();
+			
+			TermsFacet f=(TermsFacet) response.getFacets()
+					.facetsAsMap().get("relations");
+			String facet_name="relations";
 			
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,f, response, facet_name);

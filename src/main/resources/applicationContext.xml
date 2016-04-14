@@ -8,12 +8,12 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:annotation-config/>
-	<bean name="mainBean" class="com.agroknow.cimmyt.SpringElasticsearchExample"/>
+	<!-- <bean name="mainBean" class="com.agroknow.cimmyt.SpringElasticsearchExample"/>
  
     <elasticsearch:repositories base-package="com.agroknow.cimmyt.elasticsearch"/>
     <elasticsearch:node-client id="client" local="true"/>
 
     <bean name="elasticsearchTemplate" class="org.springframework.data.elasticsearch.core.ElasticsearchTemplate">
         <constructor-arg name="client" ref="client"/>
-    </bean>
+    </bean>-->
 </beans>

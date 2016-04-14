@@ -22,7 +22,7 @@ public class RelatedWithController {
     String runType(@PathVariable String relation) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));

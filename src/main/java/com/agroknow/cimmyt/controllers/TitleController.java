@@ -16,6 +16,9 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.AndFilterBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.FilteredQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -35,11 +38,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RestController
 class TitleController {
 
-	@RequestMapping( value="/title", method={RequestMethod.GET})
+	@RequestMapping( value="/entity", method={RequestMethod.GET})
     String run(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
@@ -50,16 +53,18 @@ class TitleController {
 		
 		String title="";
 		String type="";
+		String subject="";
 		
 		ParseGET parser=new ParseGET();
 		
 		type=parser.parseType(request);
 		title=parser.parseTitle(request);
+		subject=parser.parseSubject(request);
 		
-		if(title.isEmpty() && type.isEmpty())
+		if(title.isEmpty() && type.isEmpty() && subject.isEmpty())
 			return "{\"total\":0,\"results\":[]}";
 		
-		if(!title.isEmpty() && type.isEmpty())
+		if(!title.isEmpty() && type.isEmpty() && subject.isEmpty())
 		{		
 			SearchResponse response=client.prepareSearch("cimmyt")
 					.setTypes("object")
@@ -71,7 +76,7 @@ class TitleController {
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,response);
 		}
-		else if(!title.isEmpty() && !type.isEmpty())
+		else if(!title.isEmpty() && !type.isEmpty() && subject.isEmpty())
 		{
 			FilteredQueryBuilder build=
 					QueryBuilders.filteredQuery(QueryBuilders.matchQuery("title.value", title), 
@@ -89,7 +94,105 @@ class TitleController {
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,response);
 		}
+		else if(!title.isEmpty() && type.isEmpty() && !subject.isEmpty())
+		{
+			FilteredQueryBuilder build=
+					QueryBuilders.filteredQuery(QueryBuilders.matchQuery("title.value", title), 
+							FilterBuilders.termFilter("subject.value", subject));
+			
+			
+			SearchResponse response=client.prepareSearch("cimmyt")
+					.setTypes("object")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(build)
+					.execute().actionGet();
+			
+						
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,response);
+		}
+		else if(title.isEmpty() && !type.isEmpty() && !subject.isEmpty())
+		{
+			FilteredQueryBuilder build=
+					QueryBuilders.filteredQuery(QueryBuilders.matchQuery("subject.value", subject), 
+							FilterBuilders.termFilter("type", type));
+			
+			
+			SearchResponse response=client.prepareSearch("cimmyt")
+					.setTypes("object")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(build)
+					.execute().actionGet();
+			
+						
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,response);
+		}
+		else if(title.isEmpty() && !type.isEmpty() && subject.isEmpty())
+		{
+			SearchResponse response=client.prepareSearch("cimmyt")
+					.setTypes("object")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchQuery("type", type))
+					.execute().actionGet();
+	
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,response);
+		}
+		else if(title.isEmpty() && type.isEmpty() && !subject.isEmpty())
+		{
+			SearchResponse response=client.prepareSearch("cimmyt")
+					.setTypes("object")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchQuery("subject.value", subject))
+					.execute().actionGet();
+	
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,response);
+			
+		}
+		else if(!title.isEmpty() && !type.isEmpty() && !subject.isEmpty())
+		{
+			
+			/*BoolQueryBuilder build =QueryBuilders.boolQuery()
+					.must(QueryBuilders.matchQuery("title", title))
+					.must(QueryBuilders.matchQuery("subject.value",subject))
+					.must(QueryBuilders.matchQuery("type", type));*/
 
+			AndFilterBuilder and_filter=FilterBuilders.andFilter();
+			
+			and_filter
+				.add(FilterBuilders.termFilter("title", title))
+				.add(FilterBuilders.termFilter("type", type))
+				.add(FilterBuilders.termFilter("subject.value", subject))
+				;
+			
+			/*FilteredQueryBuilder build=
+					QueryBuilders.filteredQuery(QueryBuilders.matchQuery("subject.value", subject), 
+							and_filter);*/
+			
+			BoolQueryBuilder build =QueryBuilders.boolQuery()
+					.must(QueryBuilders.matchQuery("title.value", title))
+					.must(QueryBuilders.matchQuery("subject.value",subject))
+					.must(QueryBuilders.matchQuery("type", type));
+			
+			
+			SearchResponse response=client.prepareSearch("cimmyt")
+					.setTypes("object")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(build)
+					.setExplain(true)
+					.execute().actionGet();
+			
+						
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,response)+"||"+build.toString()+"||";	
+		}
 		client.close();
 		
 		

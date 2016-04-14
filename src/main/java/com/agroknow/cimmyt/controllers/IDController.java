@@ -22,7 +22,7 @@ class IDController {
     String run(@PathVariable String id) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
@@ -52,7 +52,7 @@ class IDController {
     String runObject(@PathVariable String type,@PathVariable String id) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));

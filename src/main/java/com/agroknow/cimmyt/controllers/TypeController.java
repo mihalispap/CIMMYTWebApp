@@ -33,7 +33,7 @@ class TypeController {
     String run(@PathVariable String type) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
@@ -62,7 +62,7 @@ class TypeController {
     String runType(@PathVariable String type) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));

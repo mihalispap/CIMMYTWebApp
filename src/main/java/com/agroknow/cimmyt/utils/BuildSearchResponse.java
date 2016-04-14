@@ -12,18 +12,28 @@ public class BuildSearchResponse {
 	
 	public String buildFrom(Client client, TermsFacet f, SearchResponse response, String facet)
 	{
-		String result="{\"total\":"+(f.getMissingCount()-f.getTotalCount())+
-				",\"results\":[";
+		String result="";
 		
 		//while(true)
 		//{
 			TermsFacet fac=(TermsFacet) response.getFacets()
-					.facetsAsMap().get(facet);
+					.facets().get(0);
+					//.facetsAsMap().get(facet);
 			
+			int size=0;
 			for(TermsFacet.Entry entry : fac)
 			{
-				result+="{\"value\":"+entry.getTerm()+"},";
+				if(entry.getTerm().string().equals("") || 
+						entry.getTerm().string().isEmpty() ||
+						entry.getTerm().string()=="")
+					continue;
+				
+				result+="{\"value\":\""+entry.getTerm()+"\"},";
+				size++;
 			}
+			
+			result="{\"total\":"+size+
+			",\"results\":["+result;
 			
 			/*response=client.prepareSearchScroll(response.getScrollId())
 					.setScroll(new TimeValue(60000))
@@ -49,7 +59,7 @@ public class BuildSearchResponse {
 		while(true)
 		{
 			for(SearchHit hit : response.getHits().getHits())
-				result+="{"+hit.getSourceAsString()+"},";
+				result+=hit.getSourceAsString()+",";
 			
 			response=client.prepareSearchScroll(response.getScrollId())
 					.setScroll(new TimeValue(60000))
@@ -60,7 +70,7 @@ public class BuildSearchResponse {
 					break;
 		}
 			
-		result+="]};";
+		result+="]}";
 		result=result.replace(",]}", "]}");
 		
 		return result;
@@ -77,7 +87,7 @@ public class BuildSearchResponse {
 			while(true)
 			{
 				for(SearchHit hit : rsp.getHits().getHits())
-					result+="{"+hit.getSourceAsString()+"},";
+					result+=hit.getSourceAsString()+",";
 				
 				rsp=client.prepareSearchScroll(rsp.getScrollId())
 						.setScroll(new TimeValue(60000))
@@ -89,7 +99,7 @@ public class BuildSearchResponse {
 			}
 		}
 		
-		result+="]};";
+		result+="]}";
 		result=result.replace(",]}", "]}");
 		
 		return result;

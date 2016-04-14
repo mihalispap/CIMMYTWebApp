@@ -25,7 +25,7 @@ public class GetAllController {
     String getAllET() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
@@ -59,13 +59,52 @@ public class GetAllController {
     	return results;
         
     }
+
+	@RequestMapping("/getall/subjects")
+    String getAllSubjects() {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "agroknow").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		String results="";
+				
+			TermsFacetBuilder facet =
+					FacetBuilders.termsFacet("subjects").field("subject.value").size(9999);
+			
+			SearchResponse response=
+					client.prepareSearch("cimmyt")
+					.setTypes("object")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchAllQuery())
+					.addFacet(facet)
+					.execute().actionGet();
+			
+			TermsFacet f=(TermsFacet) response.getFacets()
+					.facetsAsMap().get("subjects");
+			String facet_name="subjects";
+			
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,f, response, facet_name);
+		
+		client.close();
+		
+		//results="";
+    	return results;
+        
+    }
 	
 
 	@RequestMapping("/getall/locations")
     String getAllLocations() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
@@ -105,7 +144,7 @@ public class GetAllController {
     String getAllRelations() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "cimmyt").build();
+		        .put("cluster.name", "agroknow").build();
     	
     	Client client = new TransportClient(settings)
 		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));

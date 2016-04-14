@@ -35,7 +35,7 @@ public class Application extends SpringBootServletInitializer{
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
         
-        Settings settings = ImmutableSettings.settingsBuilder()
+        /*Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "cimmyt").build();
 		
 		client = new TransportClient(settings)
@@ -49,7 +49,7 @@ public class Application extends SpringBootServletInitializer{
 		        .actionGet();
 
 		System.out.println("Response:"+response.getSourceAsString());
-		
+		*/
 		//client.close();
         
     }

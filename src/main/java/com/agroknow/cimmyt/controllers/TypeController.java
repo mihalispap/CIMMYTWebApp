@@ -23,13 +23,27 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 import org.springframework.web.bind.annotation.RequestMethod;
 
 
 @RestController
 public class TypeController {
 
-    @RequestMapping("/entity-type/{type}")
+    @RequestMapping(value="/entity-type/{type}", method={RequestMethod.GET})
+    @ApiOperation(value = "a list of entities with the given type")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "type", 
+        			value = "an entities type", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="organization")
+      })
     String run(@PathVariable String type) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -58,7 +72,18 @@ public class TypeController {
     	return results;
         
     }
-    @RequestMapping("/type/{type}")
+    
+    @RequestMapping(value="/type/{type}", method={RequestMethod.GET})
+    @ApiOperation(value = "a list of entities with the given type")
+   	@ApiImplicitParams({
+           @ApiImplicitParam(
+           			name = "type", 
+           			value = "a resource or dataset/software type", 
+           			required = true, 
+           			dataType = "string", 
+           			paramType = "path", 
+           			defaultValue="Books and Monographs")
+         })
     String runType(@PathVariable String type) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

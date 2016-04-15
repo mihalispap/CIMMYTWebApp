@@ -24,10 +24,25 @@ import org.springframework.web.bind.annotation.RestController;
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 import com.agroknow.cimmyt.utils.ParseGET;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class ObjectController {
 
 	@RequestMapping( value="/collection", method={RequestMethod.GET})
+	@ApiOperation(value = "Get objects that belong to a given collection")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "id", 
+        			value = "a list of comma seperated collection ids [a list of all the available"
+        					+ "can be found @/entity-type/collection api call]", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "query", 
+        			defaultValue="1926639749")
+      })
     String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();

@@ -32,6 +32,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 import com.agroknow.cimmyt.utils.ParseGET;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 import org.springframework.web.bind.annotation.RequestMethod;
 
 
@@ -39,6 +43,31 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class TitleController {
 
 	@RequestMapping( value="/entity", method={RequestMethod.GET})
+	@ApiOperation(value = "Search entities with a given title"
+			+ ", subject, type")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "subject", 
+        			value = "a subject's name", 
+        			required = false, 
+        			dataType = "string", 
+        			paramType = "query", 
+        			defaultValue="wheat"),
+        @ApiImplicitParam(
+    			name = "type", 
+    			value = "an object's type name", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="resource"),
+        @ApiImplicitParam(
+    			name = "title", 
+    			value = "part of an object's title", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="assessment")
+      })
     String run(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -191,7 +220,7 @@ public class TitleController {
 			
 						
 			BuildSearchResponse builder=new BuildSearchResponse();
-			results=builder.buildFrom(client,response)+"||"+build.toString()+"||";	
+			results=builder.buildFrom(client,response);	
 		}
 		client.close();
 		

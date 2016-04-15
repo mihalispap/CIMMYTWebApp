@@ -24,10 +24,24 @@ import org.springframework.web.bind.annotation.RestController;
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 import com.agroknow.cimmyt.utils.ParseGET;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class LanguageController {
 
 	@RequestMapping( value="/language", method={RequestMethod.GET})
+	@ApiOperation(value = "Get objects with given language")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "iso", 
+        			value = "ISO639-3 code of the language", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "query", 
+        			defaultValue="spa")
+      })
     String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();

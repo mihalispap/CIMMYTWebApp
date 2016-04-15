@@ -11,14 +11,29 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class RelatedWithController {
 
-	@RequestMapping("/related-with/{relation}")
+	@RequestMapping(value="/related-with/{relation}", method={RequestMethod.GET})
+	@ApiOperation(value = "Get resources/datasets/softwares that have the given relation")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "relation", 
+        			value = "a relation's name", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="CIMMYT Program : Genetic Resources Program")
+      })
     String runType(@PathVariable String relation) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

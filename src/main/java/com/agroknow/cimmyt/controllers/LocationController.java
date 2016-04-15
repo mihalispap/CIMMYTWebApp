@@ -11,14 +11,29 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class LocationController {
 
-	@RequestMapping("/location/{location}")
+	@RequestMapping(value="/location/{location}", method={RequestMethod.GET})
+	@ApiOperation(value = "Get objects with given location")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "location", 
+        			value = "location name", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="Mexico")
+      })
     String runType(@PathVariable String location) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

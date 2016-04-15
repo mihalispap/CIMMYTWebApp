@@ -24,10 +24,24 @@ import org.springframework.web.bind.annotation.RestController;
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 import com.agroknow.cimmyt.utils.ParseGET;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class SubjectController {
 
 	@RequestMapping( value="/subject", method={RequestMethod.GET})
+	@ApiOperation(value = "Get objects that have a given external id as subject")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "uri", 
+        			value = "a subject's external id", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "query", 
+        			defaultValue="c_2807")
+      })
     String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();

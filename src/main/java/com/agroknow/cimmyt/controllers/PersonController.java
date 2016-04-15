@@ -24,10 +24,25 @@ import org.springframework.web.bind.annotation.RestController;
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 import com.agroknow.cimmyt.utils.ParseGET;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class PersonController {
 
 	@RequestMapping( value="/person", method={RequestMethod.GET})
+	@ApiOperation(value = "Get objects a given person's id as creator")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "id", 
+        			value = "a person's id [a list of all the available"
+        					+ "can be found @/entity-type/person api call]", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "query", 
+        			defaultValue="543691041")
+      })
     String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();

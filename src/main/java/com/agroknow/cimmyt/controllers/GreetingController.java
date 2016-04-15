@@ -13,7 +13,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ResponseHeader;
  
-@RestController
+//@RestController
 public class GreetingController {
  
     private static final String template = "Hello, %s!";

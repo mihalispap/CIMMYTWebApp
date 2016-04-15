@@ -55,6 +55,169 @@ public class ParseGET {
 		return "";
 		
 	}
+
+	public String parseKeyword(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String keyword="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("keyword"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
+
+	public String parseCollectionID(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String keyword="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("id"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
+
+
+	public String parseID(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String keyword="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("id"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
+
+
+	public String parseISO(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String keyword="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("iso"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
+
+
+	public String parseFromDate(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String title="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("from"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
+	
+	public String parseURI(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String title="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("uri"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
+	public String parseToDate(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String title="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("to"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
 	public String parseSubject(HttpServletRequest request)
 	{
 		Enumeration<String> params=request.getParameterNames();

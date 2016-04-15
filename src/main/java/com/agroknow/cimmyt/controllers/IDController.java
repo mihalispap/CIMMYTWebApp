@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 
 @RestController
-class IDController {
+public class IDController {
 
     @RequestMapping("/id/{id}")
     String run(@PathVariable String id) {
@@ -69,12 +69,20 @@ class IDController {
 		String results="";
 		
 		int size=0;
-		if(!response.getSourceAsString().isEmpty())
-			size=1;
-		
-		results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
-		
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+			
+			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			e.printStackTrace();
+			results+="{\"total\":0,results:[{}]}";
+		}
     	return results;
         
     }
+    
 }

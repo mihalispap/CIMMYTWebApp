@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 
 @RestController
-class TitleController {
+public class TitleController {
 
 	@RequestMapping( value="/entity", method={RequestMethod.GET})
     String run(HttpServletRequest request) {

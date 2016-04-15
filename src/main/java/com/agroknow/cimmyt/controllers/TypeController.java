@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 
 @RestController
-class TypeController {
+public class TypeController {
 
     @RequestMapping("/entity-type/{type}")
     String run(@PathVariable String type) {

@@ -28,7 +28,7 @@ public class BuildSearchResponse {
 						entry.getTerm().string()=="")
 					continue;
 				
-				result+="{\"value\":\""+entry.getTerm()+"\"},";
+				result+="{\"value\":\""+entry.getTerm()+"\",\"count\":"+entry.getCount()+"},";
 				size++;
 			}
 			

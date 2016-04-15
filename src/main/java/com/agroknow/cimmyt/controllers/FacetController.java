@@ -14,14 +14,21 @@ import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 
-@RestController
-public class GetAllController {
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 
-	@RequestMapping("/getall/entity-types")
+@RestController
+public class FacetController {
+
+	
+	@RequestMapping(value="/facet/entity-types", method={RequestMethod.GET})
+	@ApiOperation(value = "Facet for all entity types")
     String getAllET() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -60,7 +67,8 @@ public class GetAllController {
         
     }
 
-	@RequestMapping("/getall/subjects")
+	@RequestMapping(value="/facet/subjects", method={RequestMethod.GET})
+	@ApiOperation(value = "Facet for all subjects")
     String getAllSubjects() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -100,7 +108,8 @@ public class GetAllController {
     }
 	
 
-	@RequestMapping("/getall/locations")
+	@RequestMapping(value="/facet/locations", method={RequestMethod.GET})
+	@ApiOperation(value = "Facet for all locations")
     String getAllLocations() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
@@ -140,7 +149,8 @@ public class GetAllController {
         
     }
 
-	@RequestMapping("/getall/relations")
+	@RequestMapping(value="/facet/relations", method={RequestMethod.GET})
+	@ApiOperation(value = "Facet for all relations")
     String getAllRelations() {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

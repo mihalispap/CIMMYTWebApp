@@ -12,14 +12,29 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 import org.springframework.web.bind.annotation.RequestMethod;
 
 
 @RestController
 public class IDController {
 
-    @RequestMapping("/id/{id}")
-    String run(@PathVariable String id) {
+	@ApiOperation(value = "Get object by Id", nickname = "find object values by id")
+    @RequestMapping(method = RequestMethod.GET, path="/id/{id}"/*, produces = {"application/json","application/xml"}*/)
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+        			name = "id", 
+        			value = "entity's id", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="10883_1009")
+      })	
+	String run(@PathVariable String id) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -48,7 +63,24 @@ public class IDController {
         
     }
     
-    @RequestMapping("/{type}/{id}")
+	@ApiOperation(value = "Get full record for entity")
+    @RequestMapping(method = RequestMethod.GET, path="/{type}/{id}"/*, produces = {"application/json","application/xml"}*/)
+	@ApiImplicitParams({
+		@ApiImplicitParam(
+    			name = "type", 
+    			value = "entity's type", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "path", 
+    			defaultValue="resource"),
+        @ApiImplicitParam(
+        			name = "id", 
+        			value = "entity's id", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="10883_1009")
+      })
     String runObject(@PathVariable String type,@PathVariable String id) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()

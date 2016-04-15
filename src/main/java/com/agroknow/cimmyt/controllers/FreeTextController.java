@@ -23,11 +23,25 @@ import org.springframework.web.bind.annotation.RestController;
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 import com.agroknow.cimmyt.utils.ParseGET;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class FreeTextController {
 
+	@ApiOperation(value = "Search entities containing keyword")
 	@RequestMapping( value="/search", method={RequestMethod.GET})
-    String run(HttpServletRequest request) { 
+	@ApiImplicitParams({
+		@ApiImplicitParam(
+    			name = "keyword", 
+    			value = "keyword to search entities against", 
+    			required = true, 
+    			dataType = "date", 
+    			paramType = "query", 
+    			defaultValue="2012")
+	})
+	String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
 		

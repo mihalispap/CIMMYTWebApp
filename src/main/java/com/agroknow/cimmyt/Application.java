@@ -38,22 +38,22 @@ public class Application extends SpringBootServletInitializer{
 	@Bean
     public Docket newsApi() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("greetings")
+                //.groupName("greetings")
                 .apiInfo(apiInfo())
                 .select()
-                .paths(PathSelectors.regex("/greeting.*"))
+                .paths(PathSelectors.regex("/.*"))
                 .build();
     }
      
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("Spring REST Sample with Swagger")
-                .description("Spring REST Sample with Swagger")
-                .termsOfServiceUrl("http://www-03.ibm.com/software/sla/sladb.nsf/sla/bm?Open")
-                .contact("Niklas Heidloff")
-                .license("Apache License Version 2.0")
-                .licenseUrl("https://github.com/IBM-Bluemix/news-aggregator/blob/master/LICENSE")
-                .version("2.0")
+                .title("CIMMYT MetaSearch API")
+                .description("CIMMYT entities described through an API")
+                .termsOfServiceUrl("")
+                .contact("AgroKnow")
+                .license("")
+                .licenseUrl("")
+                .version("0.9")
                 .build();
     }
 	

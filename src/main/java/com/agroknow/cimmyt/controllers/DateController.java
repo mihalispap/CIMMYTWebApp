@@ -29,10 +29,31 @@ import org.springframework.web.bind.annotation.RestController;
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 import com.agroknow.cimmyt.utils.ParseGET;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class DateController {
 
+	@ApiOperation(value = "Find objects on creation date")
 	@RequestMapping( value="/date", method={RequestMethod.GET})
+	@ApiImplicitParams({
+		@ApiImplicitParam(
+    			name = "from", 
+    			value = "entity created after this date", 
+    			required = false, 
+    			dataType = "date", 
+    			paramType = "query", 
+    			defaultValue="2012"),
+        @ApiImplicitParam(
+        			name = "to", 
+        			value = "entity created prior to this date", 
+        			required = false, 
+        			dataType = "date", 
+        			paramType = "query", 
+        			defaultValue="2016")
+      })
     String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();

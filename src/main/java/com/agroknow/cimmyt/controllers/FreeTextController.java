@@ -37,9 +37,9 @@ public class FreeTextController {
     			name = "keyword", 
     			value = "keyword to search entities against", 
     			required = true, 
-    			dataType = "date", 
+    			dataType = "string", 
     			paramType = "query", 
-    			defaultValue="2012")
+    			defaultValue="CIMMYT")
 	})
 	String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()

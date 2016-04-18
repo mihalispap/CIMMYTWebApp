@@ -66,7 +66,7 @@ public class TitleController {
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
-    			defaultValue="assessment")
+    			defaultValue="economic")
       })
     String run(HttpServletRequest request) {
         

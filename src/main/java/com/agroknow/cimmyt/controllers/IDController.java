@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class IDController {
 
 	@ApiOperation(value = "Get object by Id", nickname = "find object values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/id/{id}"/*, produces = {"application/json","application/xml"}*/)
+    @RequestMapping(method = RequestMethod.GET, path="/object/{id}"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
@@ -63,17 +63,11 @@ public class IDController {
         
     }
     
-	@ApiOperation(value = "Get full record for entity")
-    @RequestMapping(method = RequestMethod.GET, path="/{type}/{id}"/*, produces = {"application/json","application/xml"}*/)
+
+	@ApiOperation(value = "Get full resource")
+    @RequestMapping(method = RequestMethod.GET, path="/resource/{id}")
 	@ApiImplicitParams({
 		@ApiImplicitParam(
-    			name = "type", 
-    			value = "entity's type", 
-    			required = true, 
-    			dataType = "string", 
-    			paramType = "path", 
-    			defaultValue="resource"),
-        @ApiImplicitParam(
         			name = "id", 
         			value = "entity's id", 
         			required = true, 
@@ -81,7 +75,7 @@ public class IDController {
         			paramType = "path", 
         			defaultValue="10883_1009")
       })
-    String runObject(@PathVariable String type,@PathVariable String id) {
+    String runResource(@PathVariable String id) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -92,7 +86,54 @@ public class IDController {
 		System.out.println("Status:"+client.settings().toString());
 		// on shutdown
 		
-		GetResponse response = client.prepareGet("cimmyt", type, id)
+		GetResponse response = client.prepareGet("cimmyt", "resource", id)
+		        .execute()
+		        .actionGet();
+    	
+		client.close();
+		
+		String results="";
+		
+		int size=0;
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+			
+			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			e.printStackTrace();
+			results+="{\"total\":0,results:[{}]}";
+		}
+    	return results;
+        
+    }
+
+	@ApiOperation(value = "Get full dataset/software")
+    @RequestMapping(method = RequestMethod.GET, path="/dataset_software/{id}")
+	@ApiImplicitParams({
+		@ApiImplicitParam(
+        			name = "id", 
+        			value = "entity's id", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="11529_10066")
+      })
+    String runDS(@PathVariable String id) {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "agroknow").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		
+		GetResponse response = client.prepareGet("cimmyt", "dataset_software", id)
 		        .execute()
 		        .actionGet();
     	
@@ -117,4 +158,150 @@ public class IDController {
         
     }
     
+
+	@ApiOperation(value = "Get person's details")
+    @RequestMapping(method = RequestMethod.GET, path="/person/{id}")
+	@ApiImplicitParams({
+		@ApiImplicitParam(
+        			name = "id", 
+        			value = "entity's id", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="2142792955")
+      })
+    String runPerson(@PathVariable String id) {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "agroknow").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		
+		GetResponse response = client.prepareGet("cimmyt", "person", id)
+		        .execute()
+		        .actionGet();
+    	
+		client.close();
+		
+		String results="";
+		
+		int size=0;
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+			
+			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			e.printStackTrace();
+			results+="{\"total\":0,results:[{}]}";
+		}
+    	return results;
+        
+    }
+
+
+	@ApiOperation(value = "Get organization's details")
+    @RequestMapping(method = RequestMethod.GET, path="/organization/{id}")
+	@ApiImplicitParams({
+		@ApiImplicitParam(
+        			name = "id", 
+        			value = "entity's id", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="1987940897")
+      })
+    String runOrganization(@PathVariable String id) {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "agroknow").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		
+		GetResponse response = client.prepareGet("cimmyt", "organization", id)
+		        .execute()
+		        .actionGet();
+    	
+		client.close();
+		
+		String results="";
+		
+		int size=0;
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+			
+			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			e.printStackTrace();
+			results+="{\"total\":0,results:[{}]}";
+		}
+    	return results;
+        
+    }
+
+
+	@ApiOperation(value = "Get collection's details")
+    @RequestMapping(method = RequestMethod.GET, path="/collection/{id}")
+	@ApiImplicitParams({
+		@ApiImplicitParam(
+        			name = "id", 
+        			value = "entity's id", 
+        			required = true, 
+        			dataType = "string", 
+        			paramType = "path", 
+        			defaultValue="403613914")
+      })
+    String runCollection(@PathVariable String id) {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "agroknow").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		
+		GetResponse response = client.prepareGet("cimmyt", "collection", id)
+		        .execute()
+		        .actionGet();
+    	
+		client.close();
+		
+		String results="";
+		
+		int size=0;
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+			
+			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			e.printStackTrace();
+			results+="{\"total\":0,results:[{}]}";
+		}
+    	return results;
+        
+    }
+
+
+
 }

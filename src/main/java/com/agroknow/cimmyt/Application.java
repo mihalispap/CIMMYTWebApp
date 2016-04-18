@@ -17,6 +17,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -27,16 +31,18 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 
 //@Configuration
+
 @SpringBootApplication
 @EnableSwagger2
 @ComponentScan({"com.agroknow.cimmyt.controllers"})
+
 //@EnableAutoConfiguration
 public class Application extends SpringBootServletInitializer{
 
 	private static Client client;
 	
 	@Bean
-    public Docket newsApi() {
+    public Docket cimmytApi() {
         return new Docket(DocumentationType.SWAGGER_2)
                 //.groupName("greetings")
                 .apiInfo(apiInfo())
@@ -56,6 +62,8 @@ public class Application extends SpringBootServletInitializer{
                 .version("0.9")
                 .build();
     }
+	
+	
 	
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)

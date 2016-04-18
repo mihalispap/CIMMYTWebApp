@@ -48,6 +48,12 @@ public class IDController {
 		GetResponse response = client.prepareGet("cimmyt", "object", id)
 		        .execute()
 		        .actionGet();
+		
+		GetResponse responseSpecific = client.prepareGet("cimmyt", 
+				response.getSourceAsMap().get("type").toString()
+				, id)
+		        .execute()
+		        .actionGet();
     	
 		client.close();
 		
@@ -57,7 +63,13 @@ public class IDController {
 		if(!response.getSourceAsString().isEmpty())
 			size=1;
 		
-		results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+		results+="{\"total\":"+size+",\"results\":[{"
+				+ "\"object\":"+response.getSourceAsString()+","
+						+ "\"detailed\":"+responseSpecific.getSourceAsString()+"";
+		
+		
+		
+		results+="}]}";
 		
     	return results;
         
@@ -100,7 +112,7 @@ public class IDController {
 			if(!response.getSourceAsString().isEmpty())
 				size=1;
 			
-			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
 		}
 		catch(java.lang.NullPointerException e)
 		{
@@ -147,7 +159,7 @@ public class IDController {
 			if(!response.getSourceAsString().isEmpty())
 				size=1;
 			
-			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
 		}
 		catch(java.lang.NullPointerException e)
 		{
@@ -195,7 +207,7 @@ public class IDController {
 			if(!response.getSourceAsString().isEmpty())
 				size=1;
 			
-			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
 		}
 		catch(java.lang.NullPointerException e)
 		{
@@ -243,7 +255,7 @@ public class IDController {
 			if(!response.getSourceAsString().isEmpty())
 				size=1;
 			
-			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
 		}
 		catch(java.lang.NullPointerException e)
 		{
@@ -291,7 +303,7 @@ public class IDController {
 			if(!response.getSourceAsString().isEmpty())
 				size=1;
 			
-			results+="{\"total\":"+size+",results:[{"+response.getSourceAsString()+"}]}";
+			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
 		}
 		catch(java.lang.NullPointerException e)
 		{

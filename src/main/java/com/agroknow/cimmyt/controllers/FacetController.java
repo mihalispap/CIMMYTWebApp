@@ -108,6 +108,48 @@ public class FacetController {
     }
 	
 
+
+	@RequestMapping(value="/facet/languages", method={RequestMethod.GET})
+	@ApiOperation(value = "Facet for languages")
+    String getAllLangs() {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "agroknow").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		String results="";
+				
+			TermsFacetBuilder facet =
+					FacetBuilders.termsFacet("langs").field("language.value").size(9999);
+			
+			SearchResponse response=
+					client.prepareSearch("cimmyt")
+					.setTypes("object")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchAllQuery())
+					.addFacet(facet)
+					.execute().actionGet();
+			
+			TermsFacet f=(TermsFacet) response.getFacets()
+					.facetsAsMap().get("langs");
+			String facet_name="langs";
+			
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,f, response, facet_name);
+		
+		client.close();
+		
+		//results="";
+    	return results;
+        
+    }
+	
+
 	@RequestMapping(value="/facet/locations", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for all locations")
     String getAllLocations() {
@@ -138,6 +180,47 @@ public class FacetController {
 			TermsFacet f=(TermsFacet) response.getFacets()
 					.facetsAsMap().get("locations");
 			String facet_name="locations";
+			
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,f, response, facet_name);
+		
+		client.close();
+		
+		//results="";
+    	return results;
+        
+    }
+
+
+	@RequestMapping(value="/facet/authors", method={RequestMethod.GET})
+	@ApiOperation(value = "Facet for all authors")
+    String getAllAuthors() {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "agroknow").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		String results="";
+				
+			TermsFacetBuilder facet =
+					FacetBuilders.termsFacet("authors").field("creator.value").size(99999);
+			
+			SearchResponse response=
+					client.prepareSearch("cimmyt")
+					.setTypes("resource", "dataset_software")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchAllQuery())
+					.addFacet(facet)
+					.execute().actionGet();
+			
+			TermsFacet f=(TermsFacet) response.getFacets()
+					.facetsAsMap().get("authors");
+			String facet_name="authors";
 			
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,f, response, facet_name);

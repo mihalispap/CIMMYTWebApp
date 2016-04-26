@@ -56,6 +56,29 @@ public class ParseGET {
 		
 	}
 
+	public int parsePage(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String title="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("page"))
+			{
+				//title=StringUtils.trim(param_value);
+				return Integer.valueOf(param_value);
+			}
+		}
+		
+		return 0;
+		
+	}
+
 	public String parseKeyword(HttpServletRequest request)
 	{
 		Enumeration<String> params=request.getParameterNames();

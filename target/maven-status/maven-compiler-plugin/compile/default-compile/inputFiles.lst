@@ -3,6 +3,7 @@
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/FreeTextController.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/LanguageController.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/utils/BuildSearchResponse.java
+/home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/AuthorController.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/PersonController.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/GreetingController.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/TitleController.java

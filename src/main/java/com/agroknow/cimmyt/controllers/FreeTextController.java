@@ -10,6 +10,7 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.facet.FacetBuilders;
@@ -39,6 +40,13 @@ public class FreeTextController {
     			required = true, 
     			dataType = "string", 
     			paramType = "query", 
+    			defaultValue="CIMMYT"),
+		@ApiImplicitParam(
+    			name = "page", 
+    			value = "page of the results (0,1...)", 
+    			required = false, 
+    			dataType = "integer", 
+    			paramType = "query", 
     			defaultValue="CIMMYT")
 	})
 	String run(HttpServletRequest request) { 
@@ -62,17 +70,23 @@ public class FreeTextController {
 				
 			QueryBuilder query=QueryBuilders.multiMatchQuery(keyword, 
 					"title.value^2","description.value");
+			
+			BoolQueryBuilder build =QueryBuilders.boolQuery()
+					.should(QueryBuilders.matchQuery("title.value", keyword))
+					.should(QueryBuilders.matchQuery("description.value",keyword));
+			
 			SearchResponse response=client.prepareSearch("cimmyt")
-					.setTypes("resource","dataset_software",
-							"organization","person","object","collection")
-					.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+					.setTypes("object")
+					//.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+					.setSearchType(SearchType.SCAN)
 					.setScroll(new TimeValue(60000))
-					.setQuery(query)
+					.setQuery(build)
 					.execute()
 					.actionGet();
 	
+			int page=parser.parsePage(request);
 			BuildSearchResponse builder=new BuildSearchResponse();
-			results=builder.buildFrom(client,response);
+			results=builder.buildFrom(client,build,page);
 		
 		client.close();
 		

@@ -2,8 +2,10 @@ package com.agroknow.cimmyt.utils;
 
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 
@@ -49,7 +51,7 @@ public class BuildSearchResponse {
 		
 		return result;
 	}
-	
+
 	public String buildFrom(Client client, SearchResponse response)
 	{
 		String result="{\"total\":"+response.getHits().getTotalHits()+
@@ -60,7 +62,51 @@ public class BuildSearchResponse {
 		{
 			for(SearchHit hit : response.getHits().getHits())
 				result+=hit.getSourceAsString()+",";
+			//if(true)
+			//	break;
+			response=client.prepareSearchScroll(response.getScrollId())
+					.setScroll(new TimeValue(60000))
+					.execute()
+					.actionGet();
 			
+			if(response.getHits().getHits().length==0)
+					break;
+		}
+			
+		result+="]}";
+		result=result.replace(",]}", "]}");
+		
+		return result;
+	}
+
+	public String buildFrom(Client client, BoolQueryBuilder build, int page)
+	{
+		SearchResponse response=client.prepareSearch("cimmyt")
+				.setTypes("object")
+				.setQuery(build)
+				.setFrom(page*10)
+				.setSize(10)
+				.execute()
+				.actionGet();
+		
+		
+		String result="{\"total\":"+response.getHits().getTotalHits()+
+				",\"results\":[";
+		
+		for(SearchHit hit : response.getHits().getHits())
+			result+=hit.getSourceAsString()+",";
+		
+		if(true)
+			return result;
+		
+		
+		
+		while(true)
+		{
+			for(SearchHit hit : response.getHits().getHits())
+				result+=hit.getSourceAsString()+",";
+			//if(true)
+			//break;
 			response=client.prepareSearchScroll(response.getScrollId())
 					.setScroll(new TimeValue(60000))
 					.execute()

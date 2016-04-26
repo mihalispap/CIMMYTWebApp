@@ -13,5 +13,6 @@ com/agroknow/cimmyt/controllers/LanguageController.class
 com/agroknow/cimmyt/controllers/FacetController.class
 com/agroknow/cimmyt/controllers/TypeController.class
 com/agroknow/cimmyt/controllers/Greeting.class
+com/agroknow/cimmyt/controllers/AuthorController.class
 com/agroknow/cimmyt/controllers/DateController.class
 com/agroknow/cimmyt/controllers/RelatedWithController.class

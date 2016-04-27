@@ -37,17 +37,38 @@ public class FreeTextController {
 		@ApiImplicitParam(
     			name = "keyword", 
     			value = "keyword to search entities against", 
-    			required = true, 
+    			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="CIMMYT"),
+		@ApiImplicitParam(
+    			name = "entity-type", 
+    			value = "", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="resource"),
+		@ApiImplicitParam(
+    			name = "type", 
+    			value = "", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="Books and Monographs"),
+		@ApiImplicitParam(
+    			name = "author", 
+    			value = "", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="Crossa, J."),
 		@ApiImplicitParam(
     			name = "page", 
     			value = "page of the results (0,1...)", 
     			required = false, 
     			dataType = "integer", 
     			paramType = "query", 
-    			defaultValue="CIMMYT")
+    			defaultValue="0")
 	})
 	String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()
@@ -60,18 +81,18 @@ public class FreeTextController {
 		// on shutdown
 		
 		ParseGET parser=new ParseGET();
-		String keyword=parser.parseKeyword(request);
 		
-		if(keyword.isEmpty())
-			return "{\"total\":0"+
-					",\"results\":[]}";
+		
+		//if(keyword.isEmpty())
+		//	return "{\"total\":0"+
+		//			",\"results\":[]}";
 		
 		String results="";
 				
-			QueryBuilder query=QueryBuilders.multiMatchQuery(keyword, 
-					"title.value^2","description.value");
+			//QueryBuilder query=QueryBuilders.multiMatchQuery(keyword, 
+			//		"title.value^2","description.value");
 			
-			BoolQueryBuilder build =QueryBuilders.boolQuery()
+			/*BoolQueryBuilder build =QueryBuilders.boolQuery()
 					.should(QueryBuilders.matchQuery("title.value", keyword))
 					.should(QueryBuilders.matchQuery("description.value",keyword));
 			
@@ -83,8 +104,29 @@ public class FreeTextController {
 					.setQuery(build)
 					.execute()
 					.actionGet();
-	
+			*/
 			int page=parser.parsePage(request);
+			
+			BoolQueryBuilder build =QueryBuilders.boolQuery();
+			
+			String keyword=parser.parseKeyword(request);
+			if(!keyword.isEmpty())
+				build
+					.should(QueryBuilders.matchQuery("object.title.value", keyword))
+					.should(QueryBuilders.matchQuery("object.description.value",keyword));
+			
+			String entity_type=parser.parseEntityType(request);
+			if(!entity_type.isEmpty())
+				build.must(QueryBuilders.matchQuery("object.type", entity_type));
+			
+			String type=parser.parseType(request);
+			if(!type.isEmpty())
+				build.must(QueryBuilders.matchQuery("type", type));
+			
+			String author=parser.parseAuthor(request);
+			if(!author.isEmpty())
+				build.must(QueryBuilders.matchQuery("creator.value", author));
+			
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,build,page);
 		

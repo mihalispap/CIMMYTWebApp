@@ -39,7 +39,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 
-@RestController
+//@RestController
 public class TitleController {
 
 	@RequestMapping( value="/entity", method={RequestMethod.GET})

@@ -1,11 +1,13 @@
 package com.agroknow.cimmyt.utils;
 
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.facet.terms.TermsFacet;
@@ -153,6 +155,7 @@ public class BuildSearchResponse {
 				//		"person","organization",
 				//		"dataset_software","collection")
 				.setQuery(build)
+				//.setQuery(query)
 				.setFrom(page*page_size)
 				.setSize(page_size)
 				.addFacet(facetET)
@@ -173,8 +176,19 @@ public class BuildSearchResponse {
 				+",\"facets\":[{"+buildFrom(client,response, "langs")+"}]"
 				+ ",\"results\":[";
 		
+		
+		
 		for(SearchHit hit : response.getHits().getHits())
-			result+=hit.getSourceAsString()+",";
+		{
+			String id=hit.getId();
+			
+			GetResponse specific = client.prepareGet("cimmyt", "object", id)
+			        .execute()
+			        .actionGet();
+			result+=specific.getSourceAsString();
+			
+			//result+=hit.getSourceAsString()+",";
+		}
 		
 		/*while(true)
 		{
@@ -193,6 +207,11 @@ public class BuildSearchResponse {
 			
 		result+="]}";
 		result=result.replace(",]}", "]}");
+		
+		//result=response.toString();
+		result+=build.getClass().getSimpleName()
+				+"|"+build.getClass().toString()+"|"+
+				build.toString();
 		
 		return result;
 	}

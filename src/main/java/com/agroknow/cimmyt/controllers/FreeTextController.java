@@ -109,15 +109,26 @@ public class FreeTextController {
 			
 			BoolQueryBuilder build =QueryBuilders.boolQuery();
 			
+			QueryBuilder query = null;
+			
 			String keyword=parser.parseKeyword(request);
 			if(!keyword.isEmpty())
-				build
-					.should(QueryBuilders.matchQuery("object.title.value", keyword))
-					.should(QueryBuilders.matchQuery("object.description.value",keyword));
+			{
+				//build.must(QueryBuilders.multiMatchQuery(keyword,"title.value^2","description.value"));
+				
+				build.must(QueryBuilders
+						.queryString(keyword)
+						.defaultField("object.title.value")
+						//.field("object.description.value")
+						);
+				
+					/*.should(QueryBuilders.matchQuery("title.value", keyword))
+					.should(QueryBuilders.matchQuery("description.value",keyword));*/
+			}
 			
 			String entity_type=parser.parseEntityType(request);
 			if(!entity_type.isEmpty())
-				build.must(QueryBuilders.matchQuery("object.type", entity_type));
+				build.must(QueryBuilders.termQuery("type", entity_type));
 			
 			String type=parser.parseType(request);
 			if(!type.isEmpty())
@@ -130,6 +141,8 @@ public class FreeTextController {
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,build,page);
 		
+			//results=builder.toString();
+			
 		client.close();
 		
 		//results="";

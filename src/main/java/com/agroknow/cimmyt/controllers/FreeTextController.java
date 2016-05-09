@@ -128,7 +128,7 @@ public class FreeTextController {
 			
 			String entity_type=parser.parseEntityType(request);
 			if(!entity_type.isEmpty())
-				build.must(QueryBuilders.termQuery("type", entity_type));
+				build.must(QueryBuilders.termQuery("object.type", entity_type));
 			
 			String type=parser.parseType(request);
 			if(!type.isEmpty())

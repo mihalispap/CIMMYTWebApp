@@ -228,6 +228,7 @@ public class FreeTextController {
 			    HasParentQueryBuilder authorNameQuery2 = 
 			    		QueryBuilders.hasParentQuery("object", 
 			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
+			    
 			    SearchResponse searchResponse3 = 
 			    		searchRequestBuilder.setQuery(QueryBuilders.filteredQuery(
 			    				authorNameQuery2, termFilter))
@@ -237,6 +238,18 @@ public class FreeTextController {
 		                //		.size(9999).order(Terms.Order.count(false)))
 		                .addAggregation(AggregationBuilders.terms("authors").field("creator.value")
 		                		.size(9999).order(Terms.Order.count(false)))
+			    		.execute()
+			    		.actionGet();
+			    //PERFECT
+			    SearchResponse searchResponse5=
+			    		searchRequestBuilder
+			    		.setQuery(QueryBuilders.idsQuery().ids("11529_10066","11529_10565"))
+			    		//.addAggregation(AggregationBuilders.terms("appids").field("appid")
+		                //		.size(9999).order(Terms.Order.count(false)))
+			    		.addAggregation(AggregationBuilders.terms("subjects2").field("subject.value")
+		                		.size(9999).order(Terms.Order.count(false)))
+		                //.addAggregation(AggregationBuilders.terms("authors").field("creator.value")
+		                //		.size(9999).order(Terms.Order.count(false)))
 			    		.execute()
 			    		.actionGet();
 			    
@@ -260,7 +273,7 @@ public class FreeTextController {
 	    
 			    //System.out.println(searchResponse3.toString());
 			    BuildSearchResponse builder2=new BuildSearchResponse();
-			    System.out.println(builder2.buildFacet(searchResponse4, "subjects"));
+			    System.out.println(builder2.buildFacet(searchResponse5, "subjects2"));
 			    System.out.println(builder2.buildFacet(searchResponse3, "authors"));
 			    System.out.println(builder2.buildFacet(searchResponse3, "appids"));
 			    /*

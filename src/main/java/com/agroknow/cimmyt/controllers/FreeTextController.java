@@ -2,6 +2,7 @@ package com.agroknow.cimmyt.controllers;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
@@ -11,8 +12,12 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.HasChildQueryBuilder;
+import org.elasticsearch.index.query.HasParentQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermFilterBuilder;
 import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
@@ -62,6 +67,27 @@ public class FreeTextController {
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="Crossa, J."),
+		@ApiImplicitParam(
+    			name = "language", 
+    			value = "", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="eng"),
+		@ApiImplicitParam(
+    			name = "location", 
+    			value = "", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="Mexico"),
+		@ApiImplicitParam(
+    			name = "relation", 
+    			value = "", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="CGIAR Research Program: MAIZE"),
 		@ApiImplicitParam(
     			name = "page", 
     			value = "page of the results (0,1...)", 
@@ -133,14 +159,104 @@ public class FreeTextController {
 			String type=parser.parseType(request);
 			if(!type.isEmpty())
 				build.must(QueryBuilders.matchQuery("type", type));
-			
+
 			String author=parser.parseAuthor(request);
 			if(!author.isEmpty())
 				build.must(QueryBuilders.matchQuery("creator.value", author));
 			
+			String subject=parser.parseSubject(request);
+			if(!subject.isEmpty())
+				build.must(QueryBuilders.matchQuery("subject.value", subject));
+			
+			String lang=parser.parseLanguage(request);
+			if(!lang.isEmpty())
+				build.must(QueryBuilders.matchQuery("language.value", lang));
+			
+			String location=parser.parseLocation(request);
+			if(!location.isEmpty())
+				build.must(QueryBuilders.matchQuery("location.value", location));
+			
+			String relation=parser.parseRelation(request);
+			if(!relation.isEmpty())
+				build.must(QueryBuilders.matchQuery("relation", relation));
+			
+			
+			
+			if(1==0)
+			{
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,build,page);
-		
+			}
+			
+			if(1==1)
+			{
+				//create the searchRequestBuilder object.
+			    SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client)
+			    		.setIndices("cimmyt");
+
+			    //Query 1. Search on all books that have the term 'book' in the title and 
+			    //return the 'authors'.
+			    HasChildQueryBuilder bookNameQuery = 
+			    		QueryBuilders.hasChildQuery("dataset_software", 
+			    				QueryBuilders.matchQuery("location.value", "Mexico"));
+			    System.out.println("Exectuing Query 1");
+			    SearchResponse searchResponse1 = 
+			    		searchRequestBuilder.setQuery(bookNameQuery).execute().actionGet();
+			    System.out.println("There were " + searchResponse1.getHits().getTotalHits()  + 
+			    		" results found for Query 1.");
+			    //System.out.println(searchResponse1.toString());
+			    System.out.println();
+
+			    //Query 2. Search on all authors that have the terms 'jon doe' in the name and return the 'books'.
+			    HasParentQueryBuilder authorNameQuery = 
+			    		QueryBuilders.hasParentQuery("object", 
+			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
+			    System.out.println("Exectuing Query 2");
+			    SearchResponse searchResponse2 = 
+			    		searchRequestBuilder.setQuery(authorNameQuery).execute().actionGet();
+			    System.out.println("There were " + 
+			    		searchResponse2.getHits().getTotalHits()  + " results found for Query 2.");
+			    //System.out.println(searchResponse2.toString());
+			    System.out.println();
+
+			    //Query 3. Search for books written by 'jane smith' and type Fiction.
+			    TermFilterBuilder termFilter = FilterBuilders.termFilter("location.value", "Mexico");
+			    HasParentQueryBuilder authorNameQuery2 = 
+			    		QueryBuilders.hasParentQuery("object", 
+			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
+			    SearchResponse searchResponse3 = 
+			    		searchRequestBuilder.setQuery(QueryBuilders.filteredQuery(
+			    				authorNameQuery2, termFilter)).execute().actionGet();
+			    System.out.println("There were " + 
+			    				searchResponse3.getHits().getTotalHits()  + " results found for Query 3.");
+			    //System.out.println(searchResponse3.toString());
+			    System.out.println();
+			    /*
+			    //Query 3. Search for books written by 'jane smith' and type Fiction.
+			    TermFilterBuilder termFilter = FilterBuilders.termFilter("category.raw", "Fiction");
+			    HasParentQueryBuilder authorNameQuery2 = QueryBuilders.hasParentQuery("author", QueryBuilders.matchQuery("name", "jane smith"));
+			    SearchResponse searchResponse3 = searchRequestBuilder.setQuery(QueryBuilders.filteredQuery(authorNameQuery2, termFilter)).execute().actionGet();
+			    System.out.println("There were " + searchResponse3.getHits().getTotalHits()  + " results found for Query 3.");
+			    System.out.println(searchResponse3.toString());
+			    System.out.println();
+				*/
+				
+			BoolQueryBuilder build_o =QueryBuilders.boolQuery();
+			if(!keyword.isEmpty())
+			{
+				build_o.must(QueryBuilders
+						.queryString(keyword)
+						.defaultField("object.title.value")
+						//.field("object.description.value")
+						);
+			}
+			BoolQueryBuilder build_r =QueryBuilders.boolQuery();
+			if(!location.isEmpty())
+				build_r.must(QueryBuilders.matchQuery("location.value", location));
+			
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,build_o,build_r,page);
+			}
 			//results=builder.toString();
 			
 		client.close();

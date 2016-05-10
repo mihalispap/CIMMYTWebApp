@@ -1,5 +1,8 @@
 package com.agroknow.cimmyt.controllers;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -12,12 +15,14 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.HasChildQueryBuilder;
 import org.elasticsearch.index.query.HasParentQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermFilterBuilder;
+import org.elasticsearch.index.query.TermsFilterBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.facet.FacetBuilders;
@@ -224,7 +229,7 @@ public class FreeTextController {
 
 			    //Query 3. Search for books written by 'jane smith' and type Fiction.
 			    //Could get all ids of object and apply aggregation there OR go @below solution
-			    TermFilterBuilder termFilter = FilterBuilders.termFilter("location.value", "Mexico");
+			    /*TermFilterBuilder termFilter = FilterBuilders.termFilter("location.value", "Mexico");
 			    HasParentQueryBuilder authorNameQuery2 = 
 			    		QueryBuilders.hasParentQuery("object", 
 			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
@@ -265,15 +270,65 @@ public class FreeTextController {
 		                		.size(9999).order(Terms.Order.count(false)))
 			    		.execute()
 			    		.actionGet();
+			    */
+				
+				BoolQueryBuilder build_o =QueryBuilders.boolQuery();
+				if(!keyword.isEmpty())
+				{
+					build_o.must(QueryBuilders
+							.queryString(keyword)
+							.defaultField("title.value")
+							//.field("object.description.value")
+							);
+				}
+				
+				if(!subject.isEmpty())
+					build_o.must(QueryBuilders.matchQuery("subject.value", subject));
+				
+				BoolQueryBuilder build_r =QueryBuilders.boolQuery();
+				if(!location.isEmpty())
+					build_r.must(QueryBuilders.matchQuery("location.value", location));
+				
+			    if(!author.isEmpty())
+					build_r.must(QueryBuilders.matchQuery("creator.value", author));
+			    
+			    TermFilterBuilder termFilter = FilterBuilders.termFilter("location.value", "Ethiopia");
+			    HasParentQueryBuilder authorNameQuery2 = 
+			    		QueryBuilders.hasParentQuery("object", 
+			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
+			    
+			    QueryBuilder qb=QueryBuilders.hasParentQuery("object",build_o);
+			    
+			    List<FilterBuilder> filters=new LinkedList<>();
+			    
+			    filters.add(FilterBuilders.termFilter("location.value","Ethiopia"));
+			    filters.add(FilterBuilders.termFilter("creator.value","Asmare Yallew"));
+			    
+			    FilterBuilder filter=FilterBuilders.andFilter(filters.toArray(
+			    		new FilterBuilder[filters.size()]));
+			    
+			    SearchResponse searchResponse3 = 
+			    		searchRequestBuilder
+			    		//.setQuery(qb)
+			    		.setQuery(QueryBuilders.filteredQuery(
+			    				qb, filter))
+			    		.addAggregation(AggregationBuilders.terms("appids").field("appid")
+		                		.size(9999).order(Terms.Order.count(false)))
+			    		//.addAggregation(AggregationBuilders.terms("subjects").field("_parent.subject.value")
+		                //		.size(9999).order(Terms.Order.count(false)))
+		                .addAggregation(AggregationBuilders.terms("authors").field("creator.value")
+		                		.size(9999).order(Terms.Order.count(false)))
+			    		.execute()
+			    		.actionGet();
 			    
 			    System.out.println("There were " + 
 			    				searchResponse3.getHits().getTotalHits()  + " results found for Query 3.");
-			    System.out.println("There were " + 
-	    				searchResponse4.getHits().getTotalHits()  + " results found for Query 4.");
+			    //System.out.println("There were " + 
+	    		//		searchResponse4.getHits().getTotalHits()  + " results found for Query 4.");
 	    
 			    //System.out.println(searchResponse3.toString());
 			    BuildSearchResponse builder2=new BuildSearchResponse();
-			    System.out.println(builder2.buildFacet(searchResponse5, "subjects2"));
+			    //System.out.println(builder2.buildFacet(searchResponse5, "subjects2"));
 			    System.out.println(builder2.buildFacet(searchResponse3, "authors"));
 			    System.out.println(builder2.buildFacet(searchResponse3, "appids"));
 			    /*
@@ -285,19 +340,7 @@ public class FreeTextController {
 			    System.out.println(searchResponse3.toString());
 			    System.out.println();
 				*/
-				
-			BoolQueryBuilder build_o =QueryBuilders.boolQuery();
-			if(!keyword.isEmpty())
-			{
-				build_o.must(QueryBuilders
-						.queryString(keyword)
-						.defaultField("object.title.value")
-						//.field("object.description.value")
-						);
-			}
-			BoolQueryBuilder build_r =QueryBuilders.boolQuery();
-			if(!location.isEmpty())
-				build_r.must(QueryBuilders.matchQuery("location.value", location));
+			
 			
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,build_o,build_r,page);

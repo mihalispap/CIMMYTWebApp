@@ -18,6 +18,8 @@ import org.elasticsearch.index.query.HasParentQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermFilterBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
@@ -207,7 +209,8 @@ public class FreeTextController {
 			    //System.out.println(searchResponse1.toString());
 			    System.out.println();
 
-			    //Query 2. Search on all authors that have the terms 'jon doe' in the name and return the 'books'.
+			    //Query 2. Search on all authors that have the terms 'jon doe' in 
+			    //the name and return the 'books'.
 			    HasParentQueryBuilder authorNameQuery = 
 			    		QueryBuilders.hasParentQuery("object", 
 			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
@@ -220,17 +223,46 @@ public class FreeTextController {
 			    System.out.println();
 
 			    //Query 3. Search for books written by 'jane smith' and type Fiction.
+			    //Could get all ids of object and apply aggregation there OR go @below solution
 			    TermFilterBuilder termFilter = FilterBuilders.termFilter("location.value", "Mexico");
 			    HasParentQueryBuilder authorNameQuery2 = 
 			    		QueryBuilders.hasParentQuery("object", 
 			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
 			    SearchResponse searchResponse3 = 
 			    		searchRequestBuilder.setQuery(QueryBuilders.filteredQuery(
-			    				authorNameQuery2, termFilter)).execute().actionGet();
+			    				authorNameQuery2, termFilter))
+			    		.addAggregation(AggregationBuilders.terms("appids").field("appid")
+		                		.size(9999).order(Terms.Order.count(false)))
+			    		//.addAggregation(AggregationBuilders.terms("subjects").field("_parent.subject.value")
+		                //		.size(9999).order(Terms.Order.count(false)))
+		                .addAggregation(AggregationBuilders.terms("authors").field("creator.value")
+		                		.size(9999).order(Terms.Order.count(false)))
+			    		.execute()
+			    		.actionGet();
+			    
+			    HasChildQueryBuilder bookNameQuery22 = 
+			    		QueryBuilders.hasChildQuery("resource", 
+			    				QueryBuilders.matchQuery("location.value", "Mexico"));
+			    TermFilterBuilder termFilter2 = FilterBuilders.termFilter("title.value", "evaluation");
+			    System.out.println("Exectuing Query 4");
+			    SearchResponse searchResponse4 = 
+			    		searchRequestBuilder.setQuery(QueryBuilders.filteredQuery(
+			    				bookNameQuery22, termFilter2))
+			    		.addAggregation(AggregationBuilders.terms("subjects").field("subject.value")
+		                		.size(9999).order(Terms.Order.count(false)))
+			    		.execute()
+			    		.actionGet();
+			    
 			    System.out.println("There were " + 
 			    				searchResponse3.getHits().getTotalHits()  + " results found for Query 3.");
+			    System.out.println("There were " + 
+	    				searchResponse4.getHits().getTotalHits()  + " results found for Query 4.");
+	    
 			    //System.out.println(searchResponse3.toString());
-			    System.out.println();
+			    BuildSearchResponse builder2=new BuildSearchResponse();
+			    System.out.println(builder2.buildFacet(searchResponse4, "subjects"));
+			    System.out.println(builder2.buildFacet(searchResponse3, "authors"));
+			    System.out.println(builder2.buildFacet(searchResponse3, "appids"));
 			    /*
 			    //Query 3. Search for books written by 'jane smith' and type Fiction.
 			    TermFilterBuilder termFilter = FilterBuilders.termFilter("category.raw", "Fiction");

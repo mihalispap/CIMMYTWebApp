@@ -2,6 +2,7 @@ package com.agroknow.cimmyt.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.elasticsearch.action.get.GetResponse;
@@ -12,6 +13,8 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.FilterBuilder;
+import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -357,6 +360,142 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 		return result;
 	}
 
+	public String buildFrom(Client client, BoolQueryBuilder build_o, 
+			List<FilterBuilder> filters, int page, boolean parent_check)
+	{
+		SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client)
+	    		.setIndices("cimmyt");
+		
+		QueryBuilder qb;
+		
+		if(parent_check)
+			qb=QueryBuilders.hasParentQuery("object",build_o);
+		else
+			qb=build_o;//QueryBuilders.boolQuery(build_o);
+		//List<FilterBuilder> filters=new LinkedList<>();
+		
+		//filters.add(FilterBuilders.termFilter("location.value","Ethiopia"));
+		//filters.add(FilterBuilders.termFilter("creator.value","Asmare Yallew"));
+		
+		FilterBuilder filter=FilterBuilders.andFilter(filters.toArray(
+				new FilterBuilder[filters.size()]));
+		
+		SearchResponse response = 
+				searchRequestBuilder
+				//.setQuery(qb)
+				.setQuery(QueryBuilders.filteredQuery(
+						qb, filter))
+				.addAggregation(AggregationBuilders.terms("authors").field("creator.value")
+                		.size(0).order(Terms.Order.count(false)))
+                .addAggregation(AggregationBuilders.terms("types").field("type")
+                		.size(9999).order(Terms.Order.count(false)))
+                .addAggregation(AggregationBuilders.terms("locations").field("location.value")
+                		.size(9999).order(Terms.Order.count(false)))
+                .addAggregation(AggregationBuilders.terms("relations").field("relation")
+                		.size(9999).order(Terms.Order.count(false)))
+                .addAggregation(AggregationBuilders.terms("collections").field("collection.id")
+                		.size(9999).order(Terms.Order.count(false)))
+                .setFrom(page*page_size)
+				.setSize(page_size)
+				.execute()
+				.actionGet();
+
+		//List<String> ids=new ArrayList<String>();
+		
+		int total=0;
+		
+		SearchResponse response_ids=client
+				.prepareSearch("cimmyt")
+				.setQuery(QueryBuilders.filteredQuery(
+						qb, filter))
+				.setSource("appid")
+				.setSize(99999)
+				.execute()
+				.actionGet();
+		
+
+		String ids[]=new String[(int) response.getHits().getTotalHits()];
+				
+		for(SearchHit hit : response_ids.getHits().getHits())
+		{
+			ids[total]=hit.getId();
+			total++;
+		}
+		System.out.println("TOTAL:"+total);
+		
+		
+		//int index=0;
+		String hits="";
+		for(SearchHit hit : response.getHits().getHits())
+		{
+			String id=hit.getId();
+			
+			//ids[index]=id;
+			//index++;
+			
+			//ids.add(id);
+			
+			GetResponse specific = client.prepareGet("cimmyt", "object", id)
+			        .execute()
+			        .actionGet();
+			hits+=specific.getSourceAsString();
+		}
+		
+		//System.out.println("IDS:"+ids[0]);
+		//System.out.println(hits);
+		
+		//if(true)
+		//	return "";
+		
+		
+		if(response.getHits().getTotalHits()==0)
+			return "{\"total\":0,\"page\":0,\"page_size:\":0"
+					+",\"time_elapsed\":"+(double)response.getTookInMillis()/1000
+					+",\"facets\":[]"
+					+ ",\"results\":[]"
+					+ "}";
+		
+		
+		
+		SearchResponse response_o=
+	    		///searchRequestBuilder
+				client.prepareSearch("cimmyt")
+				.setTypes("object")
+				.setQuery(QueryBuilders.idsQuery().ids(ids))
+	    		.addAggregation(AggregationBuilders.terms("entity-types").field("object.type")
+                		.size(9999).order(Terms.Order.count(false)))
+	    		.addAggregation(AggregationBuilders.terms("subjects").field("subject.value")
+                		.size(9999).order(Terms.Order.count(false)))
+	    		.addAggregation(AggregationBuilders.terms("langs").field("language.value")
+                		.size(9999).order(Terms.Order.count(false)))
+	    		.setFrom(page*page_size)
+				.setSize(page_size)
+	    		.execute()
+	    		.actionGet();
+		
+		String result="{\"total\":"+response.getHits().getTotalHits()
+				+",\"page\":"+page
+				+",\"page_size\":"+page_size
+				+",\"time_elapsed\":"+(double)response.getTookInMillis()/1000
+				+",\"facets\":[{"+buildFacet(response_o, "entity-types")+"}]"
+				+",\"facets\":[{"+buildFacet(response, "types")+"}]"
+				+",\"facets\":[{"+buildFacet(response_o, "langs")+"}]"
+				+",\"facets\":[{"+buildFacet(response, "authors")+"}]"
+				+",\"facets\":[{"+buildFacet(response, "locations")+"}]"
+				+",\"facets\":[{"+buildFacet(response, "relations")+"}]"
+				+",\"facets\":[{"+buildFacet(response_o, "subjects")+"}]"
+				+",\"facets\":[{"+buildFacet(client, response, "collections")+"}]"				
+				+ ",\"results\":[";
+		
+		result+=hits;
+		result+="]}";
+		result=result.replace(",]}", "]}");
+		
+		result+=QueryBuilders.filteredQuery(
+				qb, filter).toString();
+		return result;
+	}
+
 	
 	public String buildFacet(SearchResponse response, String facet_name)
 	{
@@ -406,6 +545,93 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 		
 		return result;
 	}
+	
+
+	public String buildFacet(Client client, SearchResponse response, String facet_name)
+	{
+		Terms  terms = response.getAggregations().get(facet_name);
+		List<Bucket> bucketList=new ArrayList<Bucket>();
+
+		int size=0;
+		bucketList=terms.getBuckets();
+		String fValue="";
+		for(int i=0;i<bucketList.size();i++)
+		{
+			if(facet_name.equals("collections"))
+			{
+				GetResponse specific = client
+						.prepareGet("cimmyt", "object", bucketList.get(i).getKey())
+				        .setFields("title.value")
+						.execute()
+				        .actionGet();
+				String value="";
+				try
+				{
+					value=(String)specific.getField("title.value").getValue();
+				}
+				catch(java.lang.NullPointerException e)
+				{
+					break;
+				}
+				//String value=(String)specific.getField("title.value").getValue();
+				//String value=specific.getFields().toString();
+				
+				/*BoolQueryBuilder build_c =QueryBuilders.boolQuery();
+				build_c.must(QueryBuilders.termQuery("object.type", "collection"));
+				build_c.must(QueryBuilders.termQuery("object.title.value", "collection"));
+								
+				SearchResponse response_c=client.prepareSearch("cimmyt")
+						.setTypes("object")
+						.setSearchType(SearchType.SCAN)
+						.setScroll(new TimeValue(60000))
+						.setQuery(QueryBuilders.matchQuery("location.value", location))
+						.execute().actionGet();*/
+				
+				fValue+="{\"value\":\""+value+"\", \"count\":"+
+						bucketList.get(i).getDocCount()+"},";
+				size++;
+				
+				continue;
+			}
+			
+			if(bucketList.get(i).getKey().equals("") || 
+					bucketList.get(i).getKey().isEmpty() ||
+					bucketList.get(i).getKey()=="")
+				continue;
+			
+			if(bucketList.get(i).getKey().equals("object"))
+					continue;
+			
+			if(facet_name.equals("types"))
+			{
+				if(bucketList.get(i).getKey().equals("resource")
+						||
+						bucketList.get(i).getKey().equals("dataset_software")
+						||
+						bucketList.get(i).getKey().equals("person")
+					||
+					bucketList.get(i).getKey().equals("organization")
+					||
+					bucketList.get(i).getKey().equals("collection"))
+						continue;
+			}
+						
+			fValue+="{\"value\":\""+bucketList.get(i).getKey()+"\", \"count\":"+
+					bucketList.get(i).getDocCount()+"},";
+			size++;
+		}
+		
+
+		String result="{\"total\":"+size+
+				",\"facet_name\":"+facet_name+
+		",\"results\":["+fValue;
+		
+		result+="]}";
+		result=result.replace(",]}", "]}");
+		
+		return result;
+	}
+	
 	
 	public String buildFrom(Client client, MultiSearchResponse response)
 	{

@@ -79,6 +79,29 @@ public class ParseGET {
 		
 	}
 
+	public String parseCollection(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String title="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("collection"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
+
 	public String parseAuthor(HttpServletRequest request)
 	{
 		Enumeration<String> params=request.getParameterNames();

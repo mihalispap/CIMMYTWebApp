@@ -1,11 +1,16 @@
 package com.agroknow.cimmyt.controllers;
 
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.HasParentQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.springframework.stereotype.Controller;
 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,12 +54,24 @@ public class IDController {
 		        .execute()
 		        .actionGet();
 		
-		GetResponse responseSpecific = client.prepareGet("cimmyt", 
-				response.getSourceAsMap().get("type").toString()
-				, id)
+		BoolQueryBuilder build_o =QueryBuilders.boolQuery();
+		build_o.must(QueryBuilders.termQuery("object.id", id));
+		HasParentQueryBuilder qb=QueryBuilders.hasParentQuery("object",build_o);
+		
+		/*GetResponse responseSpecific = client
+				.prepareGet("cimmyt", 
+					response.getSourceAsMap().get("type").toString()
+					, id)
 		        .execute()
-		        .actionGet();
+		        .actionGet();*/
     	
+		SearchResponse responseSpecific=client
+				.prepareSearch("cimmyt")
+				.setQuery(qb)
+				.setSize(1)
+				.execute()
+				.actionGet();
+		
 		client.close();
 		
 		String results="";
@@ -63,9 +80,18 @@ public class IDController {
 		if(!response.getSourceAsString().isEmpty())
 			size=1;
 		
+		String specific_source="";
+		
+		for(SearchHit hit : responseSpecific.getHits().getHits())
+		{
+			specific_source=hit.getSourceAsString();
+			break;
+		}
+		
 		results+="{\"total\":"+size+",\"results\":[{"
 				+ "\"object\":"+response.getSourceAsString()+","
-						+ "\"detailed\":"+responseSpecific.getSourceAsString()+"";
+						+ "\"detailed\":"+specific_source+"";
+						//+ "\"detailed\":"+responseSpecific.getSourceAsString()+"";
 		
 		
 		

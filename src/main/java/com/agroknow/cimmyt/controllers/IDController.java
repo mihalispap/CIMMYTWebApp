@@ -8,8 +8,10 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.HasParentQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermFilterBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.stereotype.Controller;
 
@@ -28,8 +30,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RestController
 public class IDController {
 
-	@ApiOperation(value = "Get object by Id", nickname = "find object values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/object/{id}"/*, produces = {"application/json","application/xml"}*/)
+	@ApiOperation(value = "Get entity by Id", nickname = "find entity values by id")
+    @RequestMapping(method = RequestMethod.GET, path="/entity/{id}"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
@@ -55,8 +57,17 @@ public class IDController {
 		        .actionGet();
 		
 		BoolQueryBuilder build_o =QueryBuilders.boolQuery();
-		build_o.must(QueryBuilders.termQuery("object.id", id));
-		HasParentQueryBuilder qb=QueryBuilders.hasParentQuery("object",build_o);
+		build_o.must(QueryBuilders.termQuery("object.appid", id));
+		HasParentQueryBuilder qb=QueryBuilders.hasParentQuery("object",
+					QueryBuilders.matchQuery("appid", id));
+
+		SearchResponse responseSpecific=client
+				.prepareSearch("cimmyt")
+				.setQuery(qb)
+				//.setSize(1)
+				.execute()
+				.actionGet();
+		//System.out.println(qb.toString());
 		
 		/*GetResponse responseSpecific = client
 				.prepareGet("cimmyt", 
@@ -64,13 +75,21 @@ public class IDController {
 					, id)
 		        .execute()
 		        .actionGet();*/
-    	
-		SearchResponse responseSpecific=client
-				.prepareSearch("cimmyt")
-				.setQuery(qb)
-				.setSize(1)
-				.execute()
-				.actionGet();
+    	/*
+		
+		TermFilterBuilder termFilter = FilterBuilders.termFilter("location.value", "Mexico");
+	    HasParentQueryBuilder object_query = 
+	    		QueryBuilders.hasParentQuery("object", 
+	    				QueryBuilders.matchQuery("title.value", "Evaluation"));
+	    
+	    SearchResponse searchResponse3 = 
+	    		client.prepareSearch("cimmyt")
+	    		.setQuery(QueryBuilders.filteredQuery(
+	    				object_query, termFilter))
+	    		.setSize(1)
+	    		.execute()
+	    		.actionGet();
+		*/
 		
 		client.close();
 		
@@ -79,6 +98,8 @@ public class IDController {
 		int size=0;
 		if(!response.getSourceAsString().isEmpty())
 			size=1;
+		
+		
 		
 		String specific_source="";
 		
@@ -102,6 +123,7 @@ public class IDController {
     }
     
 
+	/*
 	@ApiOperation(value = "Get full resource")
     @RequestMapping(method = RequestMethod.GET, path="/resource/{id}")
 	@ApiImplicitParams({
@@ -339,7 +361,7 @@ public class IDController {
     	return results;
         
     }
-
+	*/
 
 
 }

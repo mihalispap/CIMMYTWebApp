@@ -271,10 +271,27 @@ public class FreeTextController {
 			if(!subject.isEmpty())
 			{
 				search_parent=true;
+				
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				String or_values[]=subject.split("OR");
+				for(int i=0;i<or_values.length;i++)
+				{
+					String and_values[]=or_values[i].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					for(int j=0;j<and_values.length;j++)
+					{
+						bool_inner.must(QueryBuilders.termQuery("subject.value", and_values[j]));
+					}
+					bool_q.should(bool_inner);
+				}
+				build_o.must(bool_q);
+				
+				/*
 				String values[]=subject.split("AND");
 				
 				for(int i=0;i<values.length;i++)
-					build_o.must(QueryBuilders.termQuery("subject.value", values[i]));
+					build_o.must(QueryBuilders.termQuery("subject.value", values[i]));*/
 			}
 				//build_o.must(QueryBuilders.matchQuery("subject.value", subject));
 			

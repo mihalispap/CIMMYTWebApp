@@ -11,6 +11,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.joda.time.DateTime;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilder;
@@ -19,6 +20,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.facet.Facet;
@@ -53,7 +55,7 @@ public class BuildSearchResponse {
 			}
 			
 			result="{\"total\":"+size+
-					",\"facet_name\":"+f.getName()+
+					",\"facet_name\":\""+f.getName()+"\""+
 			",\"results\":["+result;
 			
 			/*response=client.prepareSearchScroll(response.getScrollId())
@@ -111,7 +113,7 @@ public class BuildSearchResponse {
 			}
 			
 			result="{\"total\":"+size+
-					",\"facet_name\":"+facet+
+					",\"facet_name\":\""+facet+"\""+
 			",\"results\":["+result;
 			
 			/*response=client.prepareSearchScroll(response.getScrollId())
@@ -244,7 +246,7 @@ public class BuildSearchResponse {
 			        .execute()
 			        .actionGet();
 			result+=specific.getSourceAsString();
-			
+			result+=",";
 			//result+=hit.getSourceAsString()+",";
 		}
 		
@@ -389,6 +391,17 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
                 		.size(0).order(Terms.Order.count(false)))
                 .addAggregation(AggregationBuilders.terms("types").field("type")
                 		.size(9999).order(Terms.Order.count(false)))
+                /*.addAggregation(AggregationBuilders.terms("dates").field("date")
+                		.size(9999)
+                		.order(Terms.Order.count(false)))*/
+                .addAggregation(AggregationBuilders.dateHistogram("dates")
+                		.field("date")
+                		.interval(DateHistogram.Interval.YEAR)
+                		.format("yyyy")
+                		)
+                		//.terms("dates").field("date")
+                		//.size(9999)
+                		//.order(Terms.Order.count(false)))
                 .addAggregation(AggregationBuilders.terms("locations").field("location.value")
                 		.size(9999).order(Terms.Order.count(false)))
                 .addAggregation(AggregationBuilders.terms("relations").field("relation")
@@ -400,6 +413,7 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 				.execute()
 				.actionGet();
 
+		
 		//List<String> ids=new ArrayList<String>();
 		
 		int total=0;
@@ -421,7 +435,7 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 			ids[total]=hit.getId();
 			total++;
 		}
-		System.out.println("TOTAL:"+total);
+		//System.out.println("TOTAL:"+total);
 		
 		
 		//int index=0;
@@ -439,6 +453,7 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 			        .execute()
 			        .actionGet();
 			hits+=specific.getSourceAsString();
+			hits+=",";
 		}
 		
 		//System.out.println("IDS:"+ids[0]);
@@ -450,7 +465,8 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 		
 		if(response.getHits().getTotalHits()==0)
 			return "{\"total\":0,\"page\":0,\"page_size:\":0"
-					+",\"time_elapsed\":"+(double)response.getTookInMillis()/1000
+					+",\"time_elapsed\":"+
+						((double)response.getTookInMillis()/1000+(double)response_ids.getTookInMillis()/1000)
 					+",\"facets\":[]"
 					+ ",\"results\":[]"
 					+ "}";
@@ -477,26 +493,158 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 				+",\"page\":"+page
 				+",\"page_size\":"+page_size
 				+",\"time_elapsed\":"+(double)response.getTookInMillis()/1000
-				+",\"facets\":[{"+buildFacet(response_o, "entity-types")+"}]"
-				+",\"facets\":[{"+buildFacet(response, "types")+"}]"
-				+",\"facets\":[{"+buildFacet(response_o, "langs")+"}]"
-				+",\"facets\":[{"+buildFacet(response, "authors")+"}]"
-				+",\"facets\":[{"+buildFacet(response, "locations")+"}]"
-				+",\"facets\":[{"+buildFacet(response, "relations")+"}]"
-				+",\"facets\":[{"+buildFacet(response_o, "subjects")+"}]"
-				+",\"facets\":[{"+buildFacet(client, response, "collections")+"}]"				
-				+ ",\"results\":[";
+				+",\"facets\":[{"
+				+"\"facet\":{"+buildFacet(response_o, "entity-types")+"}"
+				+",{\"facet\":{"+buildFacet(response, "types")+"}"
+				//+",\"facet\":{"+buildFacet(response, "dates")+"}"
+				+",{\"facet\":{"+buildFacetHistogram(response, "dates")+"}"
+				+",{\"facet\":{"+buildFacet(response_o, "langs")+"}"
+				+",{\"facet\":{"+buildFacet(response, "authors")+"}"
+				+",{\"facet\":{"+buildFacet(response, "locations")+"}"
+				+",{\"facet\":{"+buildFacet(response, "relations")+"}"
+				+",{\"facet\":{"+buildFacet(response_o, "subjects")+"}"
+				+",{\"facet\":{"+buildFacet(client, response, "collections")+"}"				
+				+ "],\"results\":[";
 		
 		result+=hits;
 		result+="]}";
 		result=result.replace(",]}", "]}");
 		
-		result+=QueryBuilders.filteredQuery(
-				qb, filter).toString();
+		//result+=QueryBuilders.filteredQuery(
+		//		qb, filter).toString();
 		return result;
 	}
 
+
+	public String buildFacet(SearchResponse response, String facet_name)
+	{
+		Terms  terms = response.getAggregations().get(facet_name);
+		List<Bucket> bucketList=new ArrayList<Bucket>();
+
+		int size=0;
+		bucketList=terms.getBuckets();
+		String fValue="";
+		for(int i=0;i<bucketList.size();i++)
+		{
+			
+			if(bucketList.get(i).getKey().equals("") || 
+					bucketList.get(i).getKey().isEmpty() ||
+					bucketList.get(i).getKey()=="")
+				continue;
+			
+			if(bucketList.get(i).getKey().equals("object"))
+					continue;
+			
+			if(facet_name.equals("types"))
+			{
+				if(bucketList.get(i).getKey().equals("resource")
+						||
+						bucketList.get(i).getKey().equals("dataset_software")
+						||
+						bucketList.get(i).getKey().equals("person")
+					||
+					bucketList.get(i).getKey().equals("organization")
+					||
+					bucketList.get(i).getKey().equals("collection"))
+						continue;
+			}
+						
+			fValue+="{\"value\":\""+bucketList.get(i).getKey()+"\", \"count\":"+
+					bucketList.get(i).getDocCount()+"},";
+			size++;
+		}
+		
+
+		String result="\"total\":"+size+
+				",\"facet_name\":\""+facet_name+"\""+
+		",\"results\":["+fValue;
+		
+		result+="]}";
+		result=result.replace(",]}", "]}");
+		
+		return result;
+	}
 	
+
+	public String buildFacetHistogram(SearchResponse response, String facet_name)
+	{
+		DateHistogram agg=response.getAggregations().get(facet_name);
+		String fValue="";
+		int size=0;
+		for(DateHistogram.Bucket entry : agg.getBuckets())
+		{
+			String key=entry.getKey();
+			DateTime keyAsDate=entry.getKeyAsDate();
+			long docCount=entry.getDocCount();
+			
+
+			if(key.equals("") || 
+					key.isEmpty() ||
+					key=="")
+				continue;
+			
+			fValue+="{\"value\":\""+key+"\", \"count\":"+
+					docCount+"},";
+			size++;
+		}
+		
+		String result="\"total\":"+size+
+				",\"facet_name\":\""+facet_name+"\""+
+		",\"results\":["+fValue;
+		
+		result+="]}";
+		result=result.replace(",]}", "]}");
+		
+		return result;
+		/*
+		Terms  terms = response.getAggregations().get(facet_name);
+		List<Bucket> bucketList=new ArrayList<Bucket>();
+
+		int size=0;
+		bucketList=terms.getBuckets();
+		String fValue="";
+		for(int i=0;i<bucketList.size();i++)
+		{
+			
+			if(bucketList.get(i).getKey().equals("") || 
+					bucketList.get(i).getKey().isEmpty() ||
+					bucketList.get(i).getKey()=="")
+				continue;
+			
+			if(bucketList.get(i).getKey().equals("object"))
+					continue;
+			
+			if(facet_name.equals("types"))
+			{
+				if(bucketList.get(i).getKey().equals("resource")
+						||
+						bucketList.get(i).getKey().equals("dataset_software")
+						||
+						bucketList.get(i).getKey().equals("person")
+					||
+					bucketList.get(i).getKey().equals("organization")
+					||
+					bucketList.get(i).getKey().equals("collection"))
+						continue;
+			}
+						
+			fValue+="{\"value\":\""+bucketList.get(i).getKey()+"\", \"count\":"+
+					bucketList.get(i).getDocCount()+"},";
+			size++;
+		}
+		
+
+		String result="{\"total\":"+size+
+				",\"facet_name\":"+facet_name+
+		",\"results\":["+fValue;
+		
+		result+="]}";
+		result=result.replace(",]}", "]}");
+		
+		return result;*/
+	}
+	
+/*
 	public String buildFacet(SearchResponse response, String facet_name)
 	{
 		Terms  terms = response.getAggregations().get(facet_name);
@@ -544,7 +692,7 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 		result=result.replace(",]}", "]}");
 		
 		return result;
-	}
+	}*/
 	
 
 	public String buildFacet(Client client, SearchResponse response, String facet_name)
@@ -622,8 +770,8 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 		}
 		
 
-		String result="{\"total\":"+size+
-				",\"facet_name\":"+facet_name+
+		String result="\"total\":"+size+
+				",\"facet_name\":\""+facet_name+"\""+
 		",\"results\":["+fValue;
 		
 		result+="]}";

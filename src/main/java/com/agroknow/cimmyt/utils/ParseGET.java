@@ -8,6 +8,28 @@ import javax.servlet.http.HttpServletRequest;
 
 public class ParseGET {
 
+	public String parseFormat(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String title="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("format"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+	}
+	
 	public String parseAll(HttpServletRequest request)
 	{
 

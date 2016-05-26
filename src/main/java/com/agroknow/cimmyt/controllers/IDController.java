@@ -1,5 +1,9 @@
 package com.agroknow.cimmyt.controllers;
 
+import java.util.Iterator;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
@@ -13,12 +17,19 @@ import org.elasticsearch.index.query.HasParentQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermFilterBuilder;
 import org.elasticsearch.search.SearchHit;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Controller;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.agroknow.cimmyt.utils.ParseGET;
+import com.agroknow.cimmyt.utils.ToXML;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -39,9 +50,16 @@ public class IDController {
         			required = true, 
         			dataType = "string", 
         			paramType = "path", 
-        			defaultValue="10883_1009")
+        			defaultValue="10883_1009"),
+        @ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
       })	
-	String run(@PathVariable String id) {
+	String run(@PathVariable String id, HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -99,7 +117,11 @@ public class IDController {
 		if(!response.getSourceAsString().isEmpty())
 			size=1;
 		
+
+		String format;
+		ParseGET parser=new ParseGET();
 		
+		format=parser.parseFormat(request);
 		
 		String specific_source="";
 		
@@ -109,14 +131,22 @@ public class IDController {
 			break;
 		}
 		
+		
+
 		results+="{\"total\":"+size+",\"results\":[{"
-				+ "\"object\":"+response.getSourceAsString()+","
+				+ "\"object\":"+response.getSourceAsString()+"},{"
 						+ "\"detailed\":"+specific_source+"";
 						//+ "\"detailed\":"+responseSpecific.getSourceAsString()+"";
 		
 		
 		
 		results+="}]}";
+		
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLID(results);
+		}
 		
     	return results;
         

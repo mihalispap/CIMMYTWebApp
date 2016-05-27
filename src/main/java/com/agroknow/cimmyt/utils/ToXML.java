@@ -53,7 +53,7 @@ public class ToXML
 					if(entry.getKey().toString().equals("detailed"))
 					{
 						xml+="<detailed>";
-						//xml+=convertDetailed(entry.getValue());
+						xml+=convertDetailed(entry.getValue().toString());
 						xml+="</detailed>";
 					}
 					System.out.println(entry.getKey()+":"+entry.getValue());
@@ -195,7 +195,36 @@ public class ToXML
 						xml+=parseCreated(obj);
 					}
 				}
+
+				if(entry.getKey().toString().equals("appuri"))
+				{
+					
+						String obj=(String)json.get("appuri");
+						
+						xml+=parseAppURI(obj,false);
+				}
 				
+				if(entry.getKey().toString().equals("language"))
+				{
+					try
+					{
+						JSONArray jresults=(JSONArray)json.get("language");
+						Iterator<JSONObject> iterator=jresults.iterator();
+						
+						while(iterator.hasNext())
+						{
+							JSONObject obj=iterator.next();
+							xml+=parseLang(obj);							
+						}
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONObject obj=(JSONObject)json.get("language");
+						
+						xml+=parseLang(obj);
+					}
+				}
+
 				System.out.println(entry.getKey()+"|||"+entry.getValue());
 			}
 			
@@ -207,6 +236,29 @@ public class ToXML
 	
 		return xml;
 	}
+	
+	
+	public String parseLang(JSONObject obj)
+	{
+		String xml="";
+		
+		String value="", uri="";
+		value=obj.get("value").toString();
+		uri=obj.get("uri").toString();
+		
+		xml+="<dc:language";
+		
+		if(!uri.isEmpty())
+			xml+=" rdf:resource=\""+uri+"\"";
+		
+		xml+="><![CDATA[";
+
+		xml+=value+"]]></dc:language>";
+		
+		return xml;
+		
+	}
+	
 	
 	public String parseTitle(JSONObject obj)
 	{
@@ -228,6 +280,22 @@ public class ToXML
 		return xml;
 		
 	}
+	
+	public String parseAppURI(String obj, boolean only_uri)
+	{
+		String xml="";
+		
+		String[] arr=obj.split("/");
+		
+		xml+="<oa:hasTarget xml:id=\""+arr[arr.length-1]+"\">"+obj+"</oa:hasTarget>";
+		
+		if(!only_uri)
+			xml+="<dc:type>"+arr[2]+"<dc:type>";
+		
+		
+		return xml;
+		
+	}
 
 	public String parseDescription(JSONObject obj)
 	{
@@ -245,6 +313,171 @@ public class ToXML
 		xml+="><![CDATA[";
 
 		xml+=title+"]]></dc:description>";
+		
+		return xml;
+		
+	}
+
+	public String parseCreator(JSONObject obj)
+	{
+		String xml="";
+		
+		String id="", value="", type="", uri="";
+		id=obj.get("id").toString();
+		value=obj.get("value").toString();
+		type=obj.get("type").toString();
+		uri=obj.get("uri").toString();
+		
+		xml+="<dc:creator";
+
+		if(!id.isEmpty())
+			xml+=" xml:id=\""+id+"\"";
+		if(!type.isEmpty())
+			xml+=" type=\""+type+"\"";
+		if(!uri.isEmpty())
+			xml+=" rdf:resource=\""+uri+"\"";
+		
+		xml+="><![CDATA[";
+
+		xml+=value+"]]></dc:creator>";
+		
+		return xml;
+		
+	}
+
+	public String parseContributor(JSONObject obj)
+	{
+		String xml="";
+		
+		String id="", value="", type="", uri="";
+		id=obj.get("id").toString();
+		value=obj.get("value").toString();
+		type=obj.get("type").toString();
+		uri=obj.get("uri").toString();
+		
+		xml+="<dc:contributor";
+
+		if(!id.isEmpty())
+			xml+=" xml:id=\""+id+"\"";
+		if(!type.isEmpty())
+			xml+=" type=\""+type+"\"";
+		if(!uri.isEmpty())
+			xml+=" rdf:resource=\""+uri+"\"";
+		
+		xml+="><![CDATA[";
+
+		xml+=value+"]]></dc:contributor>";
+		
+		return xml;
+		
+	}
+
+	public String parseURL(JSONObject obj)
+	{
+		String xml="";
+		
+		String broken="", value="";
+		broken=obj.get("broken").toString();
+		value=obj.get("value").toString();
+
+		
+		xml+="<dc:identifier";
+
+		if(!broken.isEmpty())
+			xml+=" broken=\""+broken+"\"";
+		
+		xml+="><![CDATA[";
+
+		xml+=value+"]]></dc:identifier>";
+		
+		return xml;
+		
+	}
+
+	public String parseLocation(JSONObject obj)
+	{
+		String xml="";
+		
+		String value="";
+		String voc="";
+		String uri="";
+		
+		value=obj.get("value").toString();
+
+		xml+="<dcterms:spatial xsi:type=\"TGN\"";
+		try
+		{
+			JSONArray jvocs=(JSONArray)obj.get("vocabulary");
+			Iterator<String> iterator=jvocs.iterator();
+			
+			while(iterator.hasNext())
+			{
+				String v=iterator.next();
+				
+				if(!v.isEmpty())
+					xml+=" vocabulary=\""+v+"\"";		
+			}
+		}
+		catch(java.lang.ClassCastException e)
+		{
+			voc=obj.get("vocabulary").toString();
+			if(!voc.isEmpty())
+				xml+=" vocabulary=\""+voc+"\"";
+		}
+
+		xml+=">";
+
+		try
+		{
+			JSONArray jvocs=(JSONArray)obj.get("uri");
+			Iterator<String> iterator=jvocs.iterator();
+			
+			while(iterator.hasNext())
+			{
+				String v=iterator.next();
+				
+				if(!v.isEmpty())
+					xml+="<rdf:value><![CDATA["+v+"]]></rdf:value>";		
+			}
+		}
+		catch(java.lang.ClassCastException e)
+		{
+			uri=obj.get("uri").toString();
+			if(!uri.isEmpty())
+				xml+="<rdf:value><![CDATA["+uri+"]]></rdf:value>";
+		}		
+		
+		
+		xml+="<rdf:label><![CDATA["+value+"]]></rdf:label>";
+
+		xml+="</dcterms:spatial>";
+		
+		return xml;
+	}
+
+
+	public String parsePublisher(JSONObject obj)
+	{
+		String xml="";
+		
+		String id="", value="", type="", uri="";
+		id=obj.get("id").toString();
+		value=obj.get("value").toString();
+		type=obj.get("type").toString();
+		uri=obj.get("uri").toString();
+		
+		xml+="<dc:publisher";
+
+		if(!id.isEmpty())
+			xml+=" xml:id=\""+id+"\"";
+		if(!type.isEmpty())
+			xml+=" type=\""+type+"\"";
+		if(!uri.isEmpty())
+			xml+=" rdf:resource=\""+uri+"\"";
+		
+		xml+="><![CDATA[";
+
+		xml+=value+"]]></dc:publisher>";
 		
 		return xml;
 		
@@ -355,6 +588,311 @@ public class ToXML
 		
 		return xml;
 		
+	}
+	
+	public String convertDetailed(String json_input)
+	{
+		String xml="";
+		try
+		{
+			JSONObject json = null;
+			
+			json = (JSONObject)new JSONParser().parse(json_input);
+			Set set=json.entrySet();
+			
+			Iterator keys_iterator=set.iterator();
+			while(keys_iterator.hasNext())
+			{
+				Map.Entry entry=(Map.Entry)keys_iterator.next();
+
+				if(entry.getKey().toString().equals("citation"))
+				{
+					String obj=(String)json.get("citation");					
+					xml+=parseCitation(obj);
+				}
+
+				if(entry.getKey().toString().equals("appuri"))
+				{
+						String obj=(String)json.get("appuri");
+						xml+=parseAppURI(obj,true);
+				}
+				
+				if(entry.getKey().toString().equals("type"))
+				{
+						String obj=(String)json.get("type");
+						xml+=parseType(obj);
+				}
+
+				if(entry.getKey().toString().equals("creator"))
+				{
+					try
+					{
+						JSONArray jresults=(JSONArray)json.get("creator");
+						Iterator<JSONObject> iterator=jresults.iterator();
+						
+						while(iterator.hasNext())
+						{
+							JSONObject obj=iterator.next();
+							xml+=parseCreator(obj);							
+						}
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONObject obj=(JSONObject)json.get("creator");
+						
+						xml+=parseCreator(obj);
+					}
+				}
+				if(entry.getKey().toString().equals("contributor"))
+				{
+					try
+					{
+						JSONArray jresults=(JSONArray)json.get("contributor");
+						Iterator<JSONObject> iterator=jresults.iterator();
+						
+						while(iterator.hasNext())
+						{
+							JSONObject obj=iterator.next();
+							xml+=parseContributor(obj);							
+						}
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONObject obj=(JSONObject)json.get("contributor");
+						
+						xml+=parseContributor(obj);
+					}
+				}
+				if(entry.getKey().toString().equals("url"))
+				{
+					try
+					{
+						JSONArray jresults=(JSONArray)json.get("url");
+						Iterator<JSONObject> iterator=jresults.iterator();
+						
+						while(iterator.hasNext())
+						{
+							JSONObject obj=iterator.next();
+							xml+=parseURL(obj);							
+						}
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONObject obj=(JSONObject)json.get("url");
+						
+						xml+=parseURL(obj);
+					}
+				}
+				
+				if(entry.getKey().toString().equals("publisher"))
+				{
+					try
+					{
+						JSONArray jresults=(JSONArray)json.get("publisher");
+						Iterator<JSONObject> iterator=jresults.iterator();
+						
+						while(iterator.hasNext())
+						{
+							JSONObject obj=iterator.next();
+							xml+=parsePublisher(obj);							
+						}
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONObject obj=(JSONObject)json.get("publisher");
+						
+						xml+=parsePublisher(obj);
+					}
+				}
+				
+				if(entry.getKey().toString().equals("date"))
+				{
+						String obj=(String)json.get("date");
+						xml+=parseDate(obj);
+				}
+
+				if(entry.getKey().toString().equals("updatedDate"))
+				{
+						String obj=(String)json.get("updatedDate");
+						xml+=parseUpdatedDate(obj);
+				}
+
+				if(entry.getKey().toString().equals("issn"))
+				{
+						String obj=(String)json.get("issn");
+						xml+=parseISSN(obj);
+				}
+
+				if(entry.getKey().toString().equals("isbn"))
+				{
+						String obj=(String)json.get("isbn");
+						xml+=parseISBN(obj);
+				}
+
+				if(entry.getKey().toString().equals("location"))
+				{
+					try
+					{
+						JSONArray jresults=(JSONArray)json.get("location");
+						Iterator<JSONObject> iterator=jresults.iterator();
+						
+						while(iterator.hasNext())
+						{
+							JSONObject obj=iterator.next();
+							xml+=parseLocation(obj);							
+						}
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONObject obj=(JSONObject)json.get("location");
+						
+						xml+=parseLocation(obj);
+					}
+				}
+
+				if(entry.getKey().toString().equals("focus"))
+				{
+						String obj=(String)json.get("focus");
+						xml+=parseFocus(obj);
+				}
+
+
+				if(entry.getKey().toString().equals("place"))
+				{
+						String obj=(String)json.get("place");
+						xml+=parsePlace(obj);
+				}
+
+				if(entry.getKey().toString().equals("coverage"))
+				{
+						String obj=(String)json.get("coverage");
+						xml+=parsePlace(obj);
+				}
+
+				if(entry.getKey().toString().equals("rights"))
+				{
+						String obj=(String)json.get("rights");
+						xml+=parseRights(obj);
+				}
+
+				if(entry.getKey().toString().equals("extent"))
+				{
+						String obj=(String)json.get("extent");
+						xml+=parseSeries(obj);
+				}
+
+				if(entry.getKey().toString().equals("page"))
+				{
+						String obj=(String)json.get("page");
+						xml+=parsePages(obj);
+				}
+
+				if(entry.getKey().toString().equals("relation"))
+				{
+						String obj=(String)json.get("relation");
+						xml+=parseRelation(obj);
+				}
+
+
+			}
+		}
+		catch(java.lang.Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return xml;
+		
+	}
+
+	public String parseCitation(String obj)
+	{
+		String xml="";
+		
+		xml+="<dcterms:bibliographicCitation><![CDATA["+obj+"]]></dcterms:bibliographicCitation>";
+		return xml;
+	}
+
+	public String parseType(String obj)
+	{
+		String xml="";
+		
+		xml+="<dc:type><![CDATA["+obj+"]]></dc:type>";
+		return xml;
+	}
+
+	public String parseUpdatedDate(String obj)
+	{
+		String xml="";
+		
+		xml+="<dcterms:updated><![CDATA["+obj+"]]></dcterms:updated>";
+		return xml;
+	}
+
+	public String parseISSN(String obj)
+	{
+		String xml="";
+		
+		xml+="<bibo:issn><![CDATA["+obj+"]]></bibo:issn>";
+		return xml;
+	}
+
+	public String parsePlace(String obj)
+	{
+		String xml="";
+		
+		xml+="<dc:coverage><![CDATA["+obj+"]]></dc:coverage>";
+		return xml;
+	}
+
+	public String parseFocus(String obj)
+	{
+		String xml="";
+		
+		xml+="<dc:coverage><![CDATA["+obj+"]]></dc:coverage>";
+		return xml;
+	}
+	
+	public String parseRelation(String obj)
+	{
+		String xml="";
+		
+		xml+="<dc:isPartOf><![CDATA["+obj+"]]></dc:isPartOf>";
+		return xml;
+	}
+	
+	public String parsePages(String obj)
+	{
+		String xml="";
+		
+		xml+="<bibo:numPages><![CDATA["+obj+"]]></bibo:numPages>";
+		return xml;
+	}
+	
+	public String parseSeries(String obj)
+	{
+		String xml="";
+		
+		xml+="<dcterms:extent><![CDATA["+obj+"]]></dcterms:extent>";
+		return xml;
+	}
+	
+	public String parseRights(String obj)
+	{
+		String xml="";
+		
+		xml+="<dc:rights><![CDATA["+obj+"]]></dc:rights>";
+		return xml;
+	}
+
+
+
+	public String parseISBN(String obj)
+	{
+		String xml="";
+		
+		xml+="<bibo:isbn><![CDATA["+obj+"]]></bibo:isbn>";
+		return xml;
 	}
 	
 }

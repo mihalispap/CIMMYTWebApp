@@ -793,6 +793,51 @@ public class ToXML
 						xml+=parseRelation(obj);
 				}
 
+				if(entry.getKey().toString().equals("doi"))
+				{
+						String obj=(String)json.get("doi");
+						xml+=parseDOI(obj);
+				}
+
+				if(entry.getKey().toString().equals("format"))
+				{
+						String obj=(String)json.get("format");
+						xml+=parseFormat(obj);
+				}
+
+				if(entry.getKey().toString().equals("quality"))
+				{
+						String obj=(String)json.get("quality");
+						xml+=parseQuality(obj);
+				}
+
+				if(entry.getKey().toString().equals("aggregation"))
+				{
+						JSONObject obj=(JSONObject)json.get("aggregation");
+						xml+=parseAggregation(obj);
+				}
+
+				if(entry.getKey().toString().equals("collection"))
+				{
+					try
+					{
+						JSONArray jresults=(JSONArray)json.get("collection");
+						Iterator<JSONObject> iterator=jresults.iterator();
+						
+						while(iterator.hasNext())
+						{
+							JSONObject obj=iterator.next();
+							xml+=parseCollection(obj);							
+						}
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONObject obj=(JSONObject)json.get("collection");
+						
+						xml+=parseCollection(obj);
+					}
+				}
+
 
 			}
 		}
@@ -804,7 +849,154 @@ public class ToXML
 		return xml;
 		
 	}
+	
+	public String parseAggregation(JSONObject obj)
+	{
+		String xml="";
 
+		xml+="<ore:Aggregation>";
+		
+		try
+		{
+			JSONArray jresults=(JSONArray)obj.get("shownAt");
+			Iterator<JSONObject> iterator=jresults.iterator();
+			
+			while(iterator.hasNext())
+			{
+				JSONObject objS=iterator.next();
+				xml+=parseShownAt(objS);							
+			}
+		}
+		catch(java.lang.ClassCastException e)
+		{
+			JSONObject objS=(JSONObject)obj.get("shownAt");
+			
+			xml+=parseShownAt(objS);
+		}
+
+		try
+		{
+			JSONArray jresults=(JSONArray)obj.get("shownBy");
+			Iterator<JSONObject> iterator=jresults.iterator();
+			
+			while(iterator.hasNext())
+			{
+				JSONObject objS=iterator.next();
+				xml+=parseShownBy(objS);							
+			}
+		}
+		catch(java.lang.ClassCastException e)
+		{
+			JSONObject objS=(JSONObject)obj.get("shownBy");
+			
+			xml+=parseShownBy(objS);
+		}
+
+		try
+		{
+			JSONArray jresults=(JSONArray)obj.get("linkToResource");
+			Iterator<JSONObject> iterator=jresults.iterator();
+			
+			while(iterator.hasNext())
+			{
+				JSONObject objS=iterator.next();
+				xml+=parseLinkToResource(objS);							
+			}
+		}
+		catch(java.lang.ClassCastException e)
+		{
+			JSONObject objS=(JSONObject)obj.get("linkToResource");
+			
+			xml+=parseLinkToResource(objS);
+		}
+		xml+="</ore:Aggregation>";
+		
+		return xml;
+	}
+
+	public String parseShownAt(JSONObject obj)
+	{
+		String xml="";
+		
+		String value="";
+		String broken="";
+		
+		//System.out.println(obj.toString());
+		
+		value=(String)obj.get("value").toString();
+		broken=(String)obj.get("broken").toString();
+		
+		xml+="<edm:isShownAt";
+		
+		if(!value.isEmpty())
+			xml+=" rdf:resource=\""+value+"\"";
+		if(!broken.isEmpty())
+			xml+=" broken=\""+broken+"\"";
+		
+		xml+="/>";
+		
+		return xml;
+	}
+
+	public String parseLinkToResource(JSONObject obj)
+	{
+		String xml="";
+		
+		String value="";
+		String label="";
+		String category="";
+		String size="";
+		String type="";
+		
+		value=(String)obj.get("value").toString();
+		label=(String)obj.get("label").toString();
+		category=(String)obj.get("category").toString();
+		size=(String)obj.get("size").toString();
+		type=(String)obj.get("type").toString();
+		
+		xml+="<edm:hasView";
+		
+		if(!value.isEmpty())
+			xml+=" rdf:resource=\""+value+"\"";
+		if(!size.isEmpty())
+			xml+=" size=\""+size+"\"";
+		if(!category.isEmpty())
+			xml+=" category=\""+category+"\"";
+		xml+=">";
+		
+		if(!value.isEmpty())
+			xml+="<edm:isShownAt><![CDATA["+value+"]]></edm:isShownAt>";
+		if(!type.isEmpty())
+			xml+="<dc:format><![CDATA["+type+"]]></dc:format>";
+		if(!label.isEmpty())
+			xml+="<rdf:label>"+label+"</rdf:label>";
+		
+		xml+="</edm:hasView>";
+		return xml;
+	}
+
+	public String parseShownBy(JSONObject obj)
+	{
+		String xml="";
+		
+		String value="";
+		String broken="";
+		
+		value=(String)obj.get("value").toString();
+		broken=(String)obj.get("broken").toString();
+		
+		xml+="<edm:isShownBy";
+		
+		if(!value.isEmpty())
+			xml+=" rdf:resource=\""+value+"\"";
+		if(!broken.isEmpty())
+			xml+=" broken=\""+broken+"\"";
+		
+		xml+="/>";
+		
+		return xml;
+	}
+	
 	public String parseCitation(String obj)
 	{
 		String xml="";
@@ -857,7 +1049,7 @@ public class ToXML
 	{
 		String xml="";
 		
-		xml+="<dc:isPartOf><![CDATA["+obj+"]]></dc:isPartOf>";
+		xml+="<dc:relation><![CDATA["+obj+"]]></dc:relation>";
 		return xml;
 	}
 	
@@ -885,8 +1077,6 @@ public class ToXML
 		return xml;
 	}
 
-
-
 	public String parseISBN(String obj)
 	{
 		String xml="";
@@ -895,7 +1085,65 @@ public class ToXML
 		return xml;
 	}
 	
+	public String parseDOI(String obj)
+	{
+		String xml="";
+		
+		xml+="<bibo:doi><![CDATA["+obj+"]]></bibo:doi>";
+		return xml;
+	}
+	
+	public String parseFormat(String obj)
+	{
+		String xml="";
+		
+		xml+="<dcterms:format><![CDATA["+obj+"]]></dcterms:format>";
+		return xml;
+	}
+
+	public String parseQuality(String obj)
+	{
+		String xml="";
+		if(!obj.isEmpty())
+			xml+="<schema:videoQuality><![CDATA["+obj+"]]></schema:videoQuality>";
+		return xml;
+	}
+
+	public String parseCollection(JSONObject obj)
+	{
+		String xml="";
+
+		String id="";
+		String uri="";
+		String type="";
+		
+		id=(String)obj.get("id").toString();
+		uri=(String)obj.get("uri").toString();
+		type=(String)obj.get("type").toString();
+		
+
+		xml+="<dcterms:isPartOf";
+
+			if(!id.isEmpty())
+				xml+=" xml:id=\""+id+"\"";
+			if(!uri.isEmpty())
+				xml+=" rdf:resource=\""+uri+"\"";
+			if(!type.isEmpty())
+				xml+=" type=\""+type+"\"";
+			
+		xml+="/>";
+		return xml;
+	}
+	
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -379,8 +379,14 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 		//filters.add(FilterBuilders.termFilter("location.value","Ethiopia"));
 		//filters.add(FilterBuilders.termFilter("creator.value","Asmare Yallew"));
 		
+		//FilterBuilders.or
+		
 		FilterBuilder filter=FilterBuilders.andFilter(filters.toArray(
 				new FilterBuilder[filters.size()]));
+		
+		//System.out.println(filter.toString());
+		//System.out.println(QueryBuilders.filteredQuery(
+		//		qb, filter).toString());
 		
 		SearchResponse response = 
 				searchRequestBuilder
@@ -493,17 +499,17 @@ public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryB
 				+",\"page\":"+page
 				+",\"page_size\":"+page_size
 				+",\"time_elapsed\":"+(double)response.getTookInMillis()/1000
-				+",\"facets\":[{"
-				+"\"facet\":{"+buildFacet(response_o, "entity-types")+"}"
-				+",{\"facet\":{"+buildFacet(response, "types")+"}"
+				+",\"facets\":["
+				+"{"+buildFacet(response_o, "entity-types")+""
+				+",{"+buildFacet(response, "types")+""
 				//+",\"facet\":{"+buildFacet(response, "dates")+"}"
-				+",{\"facet\":{"+buildFacetHistogram(response, "dates")+"}"
-				+",{\"facet\":{"+buildFacet(response_o, "langs")+"}"
-				+",{\"facet\":{"+buildFacet(response, "authors")+"}"
-				+",{\"facet\":{"+buildFacet(response, "locations")+"}"
-				+",{\"facet\":{"+buildFacet(response, "relations")+"}"
-				+",{\"facet\":{"+buildFacet(response_o, "subjects")+"}"
-				+",{\"facet\":{"+buildFacet(client, response, "collections")+"}"				
+				+",{"+buildFacetHistogram(response, "dates")+""
+				+",{"+buildFacet(response_o, "langs")+""
+				+",{"+buildFacet(response, "authors")+""
+				+",{"+buildFacet(response, "locations")+""
+				+",{"+buildFacet(response, "relations")+""
+				+",{"+buildFacet(response_o, "subjects")+""
+				+",{"+buildFacet(client, response, "collections")+""				
 				+ "],\"results\":[";
 		
 		result+=hits;

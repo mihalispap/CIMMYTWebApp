@@ -1,5 +1,7 @@
 package com.agroknow.cimmyt.controllers;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
+import com.agroknow.cimmyt.utils.ParseGET;
+import com.agroknow.cimmyt.utils.ToXML;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -29,7 +33,16 @@ public class FacetController {
 	
 	@RequestMapping(value="/facet/entity-types", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for all entity types")
-    String getAllET() {
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
+      })
+    String getAllET(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -62,14 +75,32 @@ public class FacetController {
 		
 		client.close();
 		
-		//results="";
+		String format;
+		ParseGET parser=new ParseGET();
+		format=parser.parseFormat(request);
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLFacet(results);
+		}
+		
+
     	return results;
         
     }
 
 	@RequestMapping(value="/facet/subjects", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for all subjects")
-    String getAllSubjects() {
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
+      })
+	String getAllSubjects(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -102,7 +133,15 @@ public class FacetController {
 		
 		client.close();
 		
-		//results="";
+		String format;
+		ParseGET parser=new ParseGET();
+		format=parser.parseFormat(request);
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLFacet(results);
+		}
+				
     	return results;
         
     }
@@ -111,7 +150,16 @@ public class FacetController {
 
 	@RequestMapping(value="/facet/languages", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for languages")
-    String getAllLangs() {
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
+      })
+	String getAllLangs(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -143,16 +191,34 @@ public class FacetController {
 			results=builder.buildFrom(client,f, response, facet_name);
 		
 		client.close();
+
+		String format;
+		ParseGET parser=new ParseGET();
+		format=parser.parseFormat(request);
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLFacet(results);
+		}
 		
-		//results="";
-    	return results;
+
+		return results;
         
     }
 	
 
 	@RequestMapping(value="/facet/locations", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for all locations")
-    String getAllLocations() {
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
+      })
+	String getAllLocations(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -186,6 +252,16 @@ public class FacetController {
 		
 		client.close();
 		
+
+		String format;
+		ParseGET parser=new ParseGET();
+		format=parser.parseFormat(request);
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLFacet(results);
+		}
+		
 		//results="";
     	return results;
         
@@ -194,7 +270,16 @@ public class FacetController {
 
 	@RequestMapping(value="/facet/authors", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for all authors")
-    String getAllAuthors() {
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
+      })
+	String getAllAuthors(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -226,6 +311,15 @@ public class FacetController {
 			results=builder.buildFrom(client,f, response, facet_name);
 		
 		client.close();
+
+		String format;
+		ParseGET parser=new ParseGET();
+		format=parser.parseFormat(request);
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLFacet(results);
+		}
 		
 		//results="";
     	return results;
@@ -234,7 +328,16 @@ public class FacetController {
 
 	@RequestMapping(value="/facet/relations", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for all relations")
-    String getAllRelations() {
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
+      })
+	String getAllRelations(HttpServletRequest request) {
         
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
@@ -245,7 +348,7 @@ public class FacetController {
 		System.out.println("Status:"+client.settings().toString());
 		// on shutdown
 		String results="";
-				
+			
 			TermsFacetBuilder facet =
 					FacetBuilders.termsFacet("relations").field("relation").size(99999);
 			
@@ -267,6 +370,15 @@ public class FacetController {
 			results=builder.buildFrom(client,f, response, facet_name);
 		
 		client.close();
+
+		String format;
+		ParseGET parser=new ParseGET();
+		format=parser.parseFormat(request);
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLFacet(results);
+		}
 		
 		//results="";
     	return results;

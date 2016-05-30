@@ -12,6 +12,152 @@ import org.jsoup.Jsoup;
 
 public class ToXML 
 {
+	public String convertToXMLFacet(String json_input)
+	{
+		String xml="";
+		try
+		{
+			JSONObject json = null;
+			
+			json = (JSONObject)new JSONParser().parse(json_input);
+
+	
+			xml+="<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+					+ "	<result "
+					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\""+
+						"xmlns:oa=\"http://www.openannotation.org/spec/core\""+
+						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
+					+ ">";
+			xml+="<total>"+json.get("total")+"</total>";
+			xml+="<facet_name>"+json.get("facet_name")+"</facet_name>";
+			
+			JSONArray jresults=(JSONArray)json.get("results");
+			Iterator<JSONObject> iterator=jresults.iterator();
+			
+			while(iterator.hasNext())
+			{
+				JSONObject obj=iterator.next();
+				
+				Set set=obj.entrySet();
+				
+				String value="";
+				String count="";
+				
+				Iterator keys_iterator=set.iterator();
+				while(keys_iterator.hasNext())
+				{
+					Map.Entry entry=(Map.Entry)keys_iterator.next();
+					
+					if(entry.getKey().equals("value"))
+						value=entry.getValue().toString();
+					if(entry.getKey().equals("count"))
+						count=entry.getValue().toString();
+					
+					//System.out.println(entry.getKey()+":"+entry.getValue());
+				}
+
+				xml+="<dc:title count=\""+count+"\"><![CDATA["+value+"]]></dc:title>";
+				
+				//System.out.println("Key values?:"+iterator.next().keySet());
+				
+				
+			}		
+		}
+		catch(java.lang.Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		xml+="</result>";
+		return xml;
+	}
+	
+	public String convertToXMLFreeText(String json_input)
+	{
+		String xml="";
+		try
+		{
+			JSONObject json = null;
+			
+			json = (JSONObject)new JSONParser().parse(json_input);
+
+	
+			xml+="<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+					+ "	<result "
+					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\""+
+						"xmlns:oa=\"http://www.openannotation.org/spec/core\""+
+						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
+					+ ">";
+			xml+="<total>"+json.get("total")+"</total>";
+			xml+="<page>"+json.get("page")+"</page>";
+			xml+="<page_size>"+json.get("page_size")+"</page_size>";
+			xml+="<elapsed>"+json.get("time_elapsed")+"</elapsed>";
+			
+			
+			JSONArray jresults=(JSONArray)json.get("results");
+			Iterator<JSONObject> iterator=jresults.iterator();
+			
+			while(iterator.hasNext())
+			{
+				JSONObject obj=iterator.next();
+				
+				Set set=obj.entrySet();
+				
+				xml+="<object>";
+				xml+=convertObject(obj.toString());
+				xml+="</object>";
+			}
+			
+			jresults=(JSONArray)json.get("facets");
+			iterator=jresults.iterator();
+			
+			xml+="<facets>";
+				while(iterator.hasNext())
+				{
+					JSONObject obj=iterator.next();
+					String total="";
+					String name="";
+					
+					total=(String)obj.get("total").toString();
+					name=(String)obj.get("facet_name").toString();
+					
+					xml+="<facet count=\""+total+"\" name=\""+name+"\">";
+						
+						JSONArray fresults=(JSONArray)obj.get("results");
+						Iterator<JSONObject> fiterator=fresults.iterator();
+						
+						while(fiterator.hasNext())
+						{
+							JSONObject objR=fiterator.next();
+							
+							String value="";
+							String count="";
+							
+							//System.out.println(objR.toString());
+							//if(true)
+							//	continue;
+							
+							value=(String)objR.get("value").toString();
+							count=(String)objR.get("count").toString();
+							
+							if(!count.isEmpty())
+								count=" count=\""+count+"\"";
+							if(!value.isEmpty())
+								xml+="<dc:title"+count+"><![CDATA["+value+"]]><dc:title>";
+						}
+						
+					xml+="</facet>";
+				}
+			xml+="</facets>";
+		}
+		catch(java.lang.Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		xml+="</result>";
+		return xml;
+	}
 	public String convertToXMLID(String json_input)
 	{
 		String xml="";
@@ -57,7 +203,7 @@ public class ToXML
 						xml+=convertDetailed(entry.getValue().toString());
 						xml+="</detailed>";
 					}
-					System.out.println(entry.getKey()+":"+entry.getValue());
+					//System.out.println(entry.getKey()+":"+entry.getValue());
 				}
 
 				

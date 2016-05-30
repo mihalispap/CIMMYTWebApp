@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
 import com.agroknow.cimmyt.utils.ParseGET;
+import com.agroknow.cimmyt.utils.ToXML;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -74,7 +75,7 @@ public class FreeTextController {
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
-    			defaultValue="2012"),
+    			defaultValue="1975"),
 		@ApiImplicitParam(
     			name = "to", 
     			value = "", 
@@ -130,7 +131,14 @@ public class FreeTextController {
     			required = false, 
     			dataType = "integer", 
     			paramType = "query", 
-    			defaultValue="0")
+    			defaultValue="0"),
+		@ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
 	})
 	String run(HttpServletRequest request) { 
 		Settings settings = ImmutableSettings.settingsBuilder()
@@ -199,15 +207,48 @@ public class FreeTextController {
 			if(!entity_type.isEmpty())
 			{
 				search_parent=true;
-				String values[]=entity_type.split("AND");
+				
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				String or_values[]=entity_type.split("OR");
+				for(int i=0;i<or_values.length;i++)
+				{
+					String and_values[]=or_values[i].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					for(int j=0;j<and_values.length;j++)
+					{
+						bool_inner.must(QueryBuilders.termQuery("object.type", and_values[j]));
+					}
+					bool_q.should(bool_inner);
+				}
+				build_o.must(bool_q);
+				
+				/*String values[]=entity_type.split("AND");
 				
 				for(int i=0;i<values.length;i++)
-					build_o.must(QueryBuilders.termQuery("object.type", values[i]));
+					build_o.must(QueryBuilders.termQuery("object.type", values[i]));*/
 			}
 			
 			String type=parser.parseType(request);
 			if(!type.isEmpty())
 			{
+				/*
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				String or_values[]=type.split("OR");
+				for(int i=0;i<or_values.length;i++)
+				{
+					String and_values[]=or_values[i].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					for(int j=0;j<and_values.length;j++)
+					{
+						bool_inner.must(QueryBuilders.termQuery("type", and_values[j]));
+					}
+					bool_q.should(bool_inner);
+				}
+				build_o.must(bool_q);
+				*/
+				
 				String values[]=type.split("AND");
 				
 				for(int i=0;i<values.length;i++)
@@ -219,6 +260,23 @@ public class FreeTextController {
 			String author=parser.parseAuthor(request);
 			if(!author.isEmpty())
 			{
+				/*
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				String or_values[]=author.split("OR");
+				for(int i=0;i<or_values.length;i++)
+				{
+					String and_values[]=or_values[i].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					for(int j=0;j<and_values.length;j++)
+					{
+						bool_inner.must(QueryBuilders.termQuery("creator.value", and_values[j]));
+					}
+					bool_q.should(bool_inner);
+				}
+				build_o.must(bool_q);
+				*/
+				
 				String values[]=author.split("AND");
 				
 				for(int i=0;i<values.length;i++)
@@ -228,6 +286,74 @@ public class FreeTextController {
 			String collection=parser.parseCollection(request);
 			if(!collection.isEmpty())
 			{
+				/*List<FilterBuilder> filtersOR=new LinkedList<>();
+				
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				String or_values[]=collection.split("OR");
+				for(int i=0;i<or_values.length;i++)
+				{
+					String and_values[]=or_values[i].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					List<FilterBuilder> filtersAND=new LinkedList<>();
+					for(int j=0;j<and_values.length;j++)
+					{
+						
+						BoolQueryBuilder bool_build =QueryBuilders.boolQuery()
+								.must(QueryBuilders.matchQuery("object.title.value", and_values[j]))
+								.must(QueryBuilders.matchQuery("object.type","collection"));
+								
+							SearchResponse response=client.prepareSearch("cimmyt")
+									.setTypes("object")
+									.setSearchType(SearchType.SCAN)
+									.setScroll(new TimeValue(60000))
+									.setQuery(bool_build)
+									.setSize(1)
+									.execute()
+									.actionGet();
+						
+							System.out.println(bool_build.toString()+", "
+									+ ":"+response.getHits().getTotalHits());
+							
+						try
+						{
+							//System.out.println(response.getHits().getAt(0).id());
+							
+							//System.out.println(response.getHits().getHits()[0].getSourceAsString());
+							
+							for(SearchHit hit : response.getHits().getHits())
+							{
+								System.out.println("my testing");
+								filtersAND.add(FilterBuilders.termFilter("collection.id",
+									hit.getId()));
+								System.out.println("my testing2222");
+								System.out.println("I got here.."+filtersAND.toString());
+								
+								break;
+							}
+							System.out.println("asdasd");
+						}
+						catch(java.lang.ArrayIndexOutOfBoundsException e)
+						{
+							System.out.println("HERE");
+							filtersAND.add(FilterBuilders.termFilter("collection.id",
+									"-999"));
+						}
+						
+						if(response.getHits().getTotalHits()==0)
+							filtersAND.add(FilterBuilders.termFilter("collection.id",
+									"-999"));
+						
+						
+					}
+					filtersOR.add(FilterBuilders.orFilter(filtersAND.toArray(
+							new FilterBuilder[filtersAND.size()])));
+				}
+				filters.add(FilterBuilders.andFilter(filtersOR.toArray(
+							new FilterBuilder[filtersOR.size()])));
+				*/
+				
+				
 				String values[]=collection.split("AND");
 				
 				for(int i=0;i<values.length;i++)
@@ -264,6 +390,7 @@ public class FreeTextController {
 					if(response.getHits().getTotalHits()==0)
 						filters.add(FilterBuilders.termFilter("collection.id",
 								"-999"));
+					
 				}
 			}			
 			
@@ -299,16 +426,49 @@ public class FreeTextController {
 			if(!lang.isEmpty())
 			{
 				search_parent=true;
-				String values[]=lang.split("AND");
+				
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				String or_values[]=lang.split("OR");
+				for(int i=0;i<or_values.length;i++)
+				{
+					String and_values[]=or_values[i].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					for(int j=0;j<and_values.length;j++)
+					{
+						bool_inner.must(QueryBuilders.termQuery("language.value", and_values[j]));
+					}
+					bool_q.should(bool_inner);
+				}
+				build_o.must(bool_q);
+				
+				/*String values[]=lang.split("AND");
 				
 				for(int i=0;i<values.length;i++)
-					build_o.must(QueryBuilders.termQuery("language.value", values[i]));
+					build_o.must(QueryBuilders.termQuery("language.value", values[i]));*/
 			}
 				//build_o.must(QueryBuilders.matchQuery("language.value", lang));
 			
 			String location=parser.parseLocation(request);
 			if(!location.isEmpty())
 			{
+				/*
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				String or_values[]=location.split("OR");
+				for(int i=0;i<or_values.length;i++)
+				{
+					String and_values[]=or_values[i].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					for(int j=0;j<and_values.length;j++)
+					{
+						bool_inner.must(QueryBuilders.termQuery("location.value", and_values[j]));
+					}
+					bool_q.should(bool_inner);
+				}
+				build_o.must(bool_q);
+				*/
+				
 				String values[]=location.split("AND");
 				
 				for(int i=0;i<values.length;i++)
@@ -320,6 +480,23 @@ public class FreeTextController {
 			String relation=parser.parseRelation(request);
 			if(!relation.isEmpty())
 			{
+				/*
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				String or_values[]=relation.split("OR");
+				for(int i=0;i<or_values.length;i++)
+				{
+					String and_values[]=or_values[i].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					for(int j=0;j<and_values.length;j++)
+					{
+						bool_inner.must(QueryBuilders.termQuery("relation", and_values[j]));
+					}
+					bool_q.should(bool_inner);
+				}
+				build_o.must(bool_q);
+				*/
+				
 				String values[]=relation.split("AND");
 				
 				for(int i=0;i<values.length;i++)
@@ -464,6 +641,15 @@ public class FreeTextController {
 			//results=builder.toString();
 			
 		client.close();
+		
+		String format;
+		//ParseGET parser=new ParseGET();
+		format=parser.parseFormat(request);
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLFreeText(results);
+		}
 		
 		//results="";
 		return results;

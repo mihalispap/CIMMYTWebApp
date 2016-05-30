@@ -8,6 +8,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.jsoup.Jsoup;
 
 public class ToXML 
 {
@@ -62,7 +63,7 @@ public class ToXML
 				
 				//System.out.println("Key values?:"+iterator.next().keySet());
 				
-				xml+="</result>";
+				
 			}		
 		}
 		catch(java.lang.Exception e)
@@ -70,7 +71,7 @@ public class ToXML
 			e.printStackTrace();
 		}
 		
-		
+		xml+="</result>";
 		return xml;
 	}
 	
@@ -312,6 +313,7 @@ public class ToXML
 		
 		xml+="><![CDATA[";
 
+		title=Jsoup.parse(title).text();
 		xml+=title+"]]></dc:description>";
 		
 		return xml;
@@ -765,14 +767,45 @@ public class ToXML
 
 				if(entry.getKey().toString().equals("coverage"))
 				{
+					try
+					{
 						String obj=(String)json.get("coverage");
 						xml+=parsePlace(obj);
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONArray objA=(JSONArray)json.get("coverage");
+						
+						Iterator<String> iterator=objA.iterator();
+						while(iterator.hasNext())
+						{
+							String obj=iterator.next();
+							xml+=parsePlace(obj);						
+						}
+						
+					}	
 				}
 
 				if(entry.getKey().toString().equals("rights"))
 				{
+					try
+					{
 						String obj=(String)json.get("rights");
 						xml+=parseRights(obj);
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONArray objA=(JSONArray)json.get("rights");
+						
+						Iterator<String> iterator=objA.iterator();
+						while(iterator.hasNext())
+						{
+							String obj=iterator.next();
+							xml+=parseRights(obj);						
+						}
+						
+					}			
+						
 				}
 
 				if(entry.getKey().toString().equals("extent"))
@@ -789,8 +822,111 @@ public class ToXML
 
 				if(entry.getKey().toString().equals("relation"))
 				{
+					try
+					{
 						String obj=(String)json.get("relation");
 						xml+=parseRelation(obj);
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONArray objA=(JSONArray)json.get("relation");
+						
+						Iterator<String> iterator=objA.iterator();
+						while(iterator.hasNext())
+						{
+							String obj=iterator.next();
+							xml+=parseRelation(obj);						
+						}
+						
+						
+					}
+				}
+
+				if(entry.getKey().toString().equals("timePeriod"))
+				{
+					try
+					{
+						String obj=(String)json.get("timePeriod");
+						xml+=parseTimePeriod(obj);
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONArray objA=(JSONArray)json.get("timePeriod");
+						
+						Iterator<String> iterator=objA.iterator();
+						while(iterator.hasNext())
+						{
+							String obj=iterator.next();
+							xml+=parseTimePeriod(obj);						
+						}
+						
+						
+					}
+				}
+
+				if(entry.getKey().toString().equals("kindOfData"))
+				{
+					try
+					{
+						String obj=(String)json.get("kindOfData");
+						xml+=parseKindOfData(obj);
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONArray objA=(JSONArray)json.get("kindOfData");
+						
+						Iterator<String> iterator=objA.iterator();
+						while(iterator.hasNext())
+						{
+							String obj=iterator.next();
+							xml+=parseKindOfData(obj);						
+						}
+						
+						
+					}
+				}
+
+				if(entry.getKey().toString().equals("notes"))
+				{
+					try
+					{
+						String obj=(String)json.get("notes");
+						xml+=parseNotes(obj);
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONArray objA=(JSONArray)json.get("notes");
+						
+						Iterator<String> iterator=objA.iterator();
+						while(iterator.hasNext())
+						{
+							String obj=iterator.next();
+							xml+=parseNotes(obj);						
+						}
+						
+						
+					}
+				}
+				if(entry.getKey().toString().equals("funding"))
+				{
+					try
+					{
+						String obj=(String)json.get("funding");
+						xml+=parseFunding(obj);
+					}
+					catch(java.lang.ClassCastException e)
+					{
+						JSONArray objA=(JSONArray)json.get("funding");
+						
+						Iterator<String> iterator=objA.iterator();
+						while(iterator.hasNext())
+						{
+							String obj=iterator.next();
+							xml+=parseFunding(obj);						
+						}
+						
+						
+					}
 				}
 
 				if(entry.getKey().toString().equals("doi"))
@@ -811,10 +947,94 @@ public class ToXML
 						xml+=parseQuality(obj);
 				}
 
+				if(entry.getKey().toString().equals("fullName"))
+				{
+						String obj=(String)json.get("fullName");
+						xml+=parseFullName(obj);
+				}
+
+				if(entry.getKey().toString().equals("viaf"))
+				{
+						String obj=(String)json.get("viaf");
+						xml+=parseVIAF(obj);
+				}
+
+				if(entry.getKey().toString().equals("contact"))
+				{
+						String obj=(String)json.get("contact");
+						xml+=parseContact(obj);
+				}
+
+				if(entry.getKey().toString().equals("logo"))
+				{
+						String obj=(String)json.get("logo");
+						xml+=parseLogo(obj);
+				}
+
+				if(entry.getKey().toString().equals("address"))
+				{
+						String obj=(String)json.get("address");
+						xml+=parseAddress(obj);
+				}
+
+				if(entry.getKey().toString().equals("firstName"))
+				{
+						String obj=(String)json.get("firstName");
+						xml+=parseFirstName(obj);
+				}
+
+				if(entry.getKey().toString().equals("lastName"))
+				{
+						String obj=(String)json.get("lastName");
+						xml+=parseLastName(obj);
+				}
+
+				if(entry.getKey().toString().equals("orcid"))
+				{
+						String obj=(String)json.get("orcid");
+						xml+=parseORCID(obj);
+				}
+
+				if(entry.getKey().toString().equals("photo"))
+				{
+						String obj=(String)json.get("photo");
+						xml+=parsePhoto(obj);
+				}
+
+				if(entry.getKey().toString().equals("shortBio"))
+				{
+						String obj=(String)json.get("shortBio");
+						xml+=parseShortBio(obj);
+				}
+
+				if(entry.getKey().toString().equals("name"))
+				{
+						String obj=(String)json.get("name");
+						xml+=parseName(obj);
+				}
+
+				if(entry.getKey().toString().equals("spec"))
+				{
+						String obj=(String)json.get("spec");
+						xml+=parseSpec(obj);
+				}
+
 				if(entry.getKey().toString().equals("aggregation"))
 				{
 						JSONObject obj=(JSONObject)json.get("aggregation");
 						xml+=parseAggregation(obj);
+				}
+
+				if(entry.getKey().toString().equals("affiliation"))
+				{
+						JSONObject obj=(JSONObject)json.get("affiliation");
+						xml+=parseAffiliation(obj);
+				}
+
+				if(entry.getKey().toString().equals("about"))
+				{
+						JSONObject obj=(JSONObject)json.get("about");
+						xml+=parseAbout(obj);
 				}
 
 				if(entry.getKey().toString().equals("collection"))
@@ -1013,6 +1233,47 @@ public class ToXML
 		return xml;
 	}
 
+	public String parseFullName(String obj)
+	{
+		String xml="";
+		
+		xml+="<foaf:name><![CDATA["+obj+"]]></foaf:name>";
+		return xml;
+	}
+
+	public String parseVIAF(String obj)
+	{
+		String xml="";
+		
+		xml+="<dc:identifier scheme=\"dcterms:URI\" vocabulary=\"VIAF\"><![CDATA["+obj+"]]></foaf:name>";
+		return xml;
+	}
+
+	public String parseLogo(String obj)
+	{
+		String xml="";
+		
+		xml+="<foaf:logo><![CDATA["+obj+"]]></foaf:logo>";
+		return xml;
+	}
+
+	public String parseContact(String obj)
+	{
+		String xml="";
+		
+		xml+="<foaf:mbox><![CDATA["+obj+"]]></foaf:mbox>";
+		return xml;
+	}
+
+	public String parseAddress(String obj)
+	{
+		String xml="";
+		
+		xml+="<schema:address><![CDATA["+obj+"]]></schema:address>";
+		return xml;
+	}
+
+	
 	public String parseUpdatedDate(String obj)
 	{
 		String xml="";
@@ -1034,6 +1295,46 @@ public class ToXML
 		String xml="";
 		
 		xml+="<dc:coverage><![CDATA["+obj+"]]></dc:coverage>";
+		return xml;
+	}
+
+	public String parseFirstName(String obj)
+	{
+		String xml="";
+		
+		xml+="<foaf:firstName><![CDATA["+obj+"]]></foaf:firstName>";
+		return xml;
+	}
+
+	public String parseLastName(String obj)
+	{
+		String xml="";
+		
+		xml+="<foaf:lastName><![CDATA["+obj+"]]></foaf:lastName>";
+		return xml;
+	}
+
+	public String parseORCID(String obj)
+	{
+		String xml="";
+		
+		xml+="<dc:identifier scheme=\"dcterms:URI\" vocabulary=\"ORCID\"><![CDATA["+obj+"]]></dc:identifier>";
+		return xml;
+	}
+
+	public String parsePhoto(String obj)
+	{
+		String xml="";
+		
+		xml+="<foaf:img><![CDATA["+obj+"]]></foaf:img>";
+		return xml;
+	}
+
+	public String parseShortBio(String obj)
+	{
+		String xml="";
+		
+		xml+="<dc:description><![CDATA["+obj+"]]></dc:description>";
 		return xml;
 	}
 
@@ -1109,6 +1410,54 @@ public class ToXML
 		return xml;
 	}
 
+	public String parseName(String obj)
+	{
+		String xml="";
+		if(!obj.isEmpty())
+			xml+="<dc:title><![CDATA["+obj+"]]></dc:title>";
+		return xml;
+	}
+
+	public String parseTimePeriod(String obj)
+	{
+		String xml="";
+		if(!obj.isEmpty())
+			xml+="<dc:coverage><![CDATA["+obj+"]]></dc:coverage>";
+		return xml;
+	}
+
+	public String parseFunding(String obj)
+	{
+		String xml="";
+		if(!obj.isEmpty())
+			xml+="<foaf:fundedBy><![CDATA["+obj+"]]></foaf:fundedBy>";
+		return xml;
+	}
+
+	public String parseKindOfData(String obj)
+	{
+		String xml="";
+		if(!obj.isEmpty())
+			xml+="<dc:subject><![CDATA["+obj+"]]></dc:subject>";
+		return xml;
+	}
+
+	public String parseNotes(String obj)
+	{
+		String xml="";
+		if(!obj.isEmpty())
+			xml+="<dc:description><![CDATA["+obj+"]]></dc:description>";
+		return xml;
+	}
+
+	public String parseSpec(String obj)
+	{
+		String xml="";
+		if(!obj.isEmpty())
+			xml+="<dc:identifier><![CDATA["+obj+"]]></dc:identifier>";
+		return xml;
+	}
+
 	public String parseCollection(JSONObject obj)
 	{
 		String xml="";
@@ -1134,6 +1483,105 @@ public class ToXML
 		xml+="/>";
 		return xml;
 	}
+
+	public String parseAffiliation(JSONObject obj)
+	{
+		String xml="";
+
+		String id="";
+		String uri="";
+		String value="";
+		String type="";
+		
+		id=(String)obj.get("id").toString();
+		uri=(String)obj.get("uri").toString();
+		type=(String)obj.get("type").toString();
+		value=(String)obj.get("value").toString();
+
+		xml+="<schema:affiliation";
+
+			if(!id.isEmpty())
+				xml+=" xml:id=\""+id+"\"";
+			if(!uri.isEmpty())
+				xml+=" rdf:resource=\""+uri+"\"";
+			if(!type.isEmpty())
+				xml+=" type=\""+type+"\"";
+			
+		xml+="><![CDATA["+value+"]]></schema:affiliation>";
+		return xml;
+	}
+	
+	
+	public String parseAbout(JSONObject obj)
+	{
+		String xml="";
+
+		xml+="<about>";
+		
+		try
+		{
+			JSONArray jresults=(JSONArray)obj.get("metadataSchema");
+			Iterator<JSONObject> iterator=jresults.iterator();
+			
+			while(iterator.hasNext())
+			{
+				JSONObject objS=iterator.next();
+				
+				System.out.println("METADATASCHEA:"+objS.toString());
+				
+				xml+=parseMetadataSchema(objS);							
+			}
+		}
+		catch(java.lang.ClassCastException e)
+		{
+			JSONObject objS=(JSONObject)obj.get("metadataSchema");
+			
+			xml+=parseMetadataSchema(objS);
+		}
+
+		String software="";
+		String repo_name="";
+		String handler="";
+		
+		software=(String)obj.get("software").toString();
+		repo_name=(String)obj.get("repoName").toString();
+		handler=(String)obj.get("handler").toString();
+		
+		if(!software.isEmpty())
+			software=" software=\""+software+"\"";
+		if(!repo_name.isEmpty())
+			xml+="<dc:title><![CDATA["+repo_name+"]]></dc:title>";
+		if(!handler.isEmpty())
+			xml+="<dc:identifier scheme=\"dcterms:URI\""+software+"><![CDATA["+handler+"]]></dc:identifier>";
+		
+		xml+="</about>";
+		
+		return xml;
+	}
+	
+
+	public String parseMetadataSchema(JSONObject obj)
+	{
+		String xml="";
+		
+		String value="";
+		String uri="";
+		
+		value=(String)obj.get("name").toString();
+		uri=(String)obj.get("uri").toString();
+		
+		xml+="<metadataNamespace";
+		
+		if(!value.isEmpty())
+			xml+=" name=\""+value+"\"";
+		
+
+		xml+="><![CDATA["+uri+"]]></metadataNamespace>";
+		
+		return xml;
+	}
+	
+
 	
 }
 

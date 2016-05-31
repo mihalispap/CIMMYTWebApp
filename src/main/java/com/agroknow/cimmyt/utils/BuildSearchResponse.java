@@ -36,6 +36,9 @@ public class BuildSearchResponse {
 	{
 		String result="";
 		
+		if(!facet.equals("collections"))
+		{
+		
 		//while(true)
 		//{
 			TermsFacet fac=(TermsFacet) response.getFacets()
@@ -66,8 +69,14 @@ public class BuildSearchResponse {
 			if(response.getHits().getHits().length==0)
 					break;
 		}*/
-		
-		result+="]}";
+
+			result+="]}";
+			
+		}
+		else
+		{
+			result+="{"+buildFacet(client, response, facet)+"";
+		}
 		result=result.replace(",]}", "]}");
 		
 		return result;
@@ -261,7 +270,7 @@ public class BuildSearchResponse {
 	}
 
 
-public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryBuilder build_resource
+	public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryBuilder build_resource
 		, int page)
 	{
 		SearchResponse response_o = client.prepareSearch("cimmyt")

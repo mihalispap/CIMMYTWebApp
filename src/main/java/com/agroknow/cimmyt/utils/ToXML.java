@@ -23,7 +23,13 @@ public class ToXML
 
 	
 			xml+="<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-					+ "	<result "
+					+ "	<result xmlns:dc=\"http://purl.org/dc/elements/1.1/\" "
+					+ "xmlns:bibo=\"http://purl.org/ontology/bibo/\" "
+					+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+					+ "xmlns:ore=\"http://www.openarchives.org/ore/terms/\" "
+					+ "xmlns:edm=\"http://www.europeana.eu/schemas/edm/\" "
+					+ "xmlns:schema=\"http://schema.org/\" "
+					+ "xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" "
 					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\""+
 						"xmlns:oa=\"http://www.openannotation.org/spec/core\""+
 						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
@@ -83,7 +89,13 @@ public class ToXML
 
 	
 			xml+="<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-					+ "	<result "
+					+ "	<result xmlns:dc=\"http://purl.org/dc/elements/1.1/\" "
+					+ "xmlns:bibo=\"http://purl.org/ontology/bibo/\" "
+					+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+					+ "xmlns:ore=\"http://www.openarchives.org/ore/terms/\" "
+					+ "xmlns:edm=\"http://www.europeana.eu/schemas/edm/\" "
+					+ "xmlns:schema=\"http://schema.org/\" "
+					+ "xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" "
 					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\""+
 						"xmlns:oa=\"http://www.openannotation.org/spec/core\""+
 						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
@@ -167,9 +179,14 @@ public class ToXML
 			
 			json = (JSONObject)new JSONParser().parse(json_input);
 
-	
 			xml+="<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-					+ "	<result "
+					+ "	<result xmlns:dc=\"http://purl.org/dc/elements/1.1/\" "
+					+ "xmlns:bibo=\"http://purl.org/ontology/bibo/\" "
+					+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+					+ "xmlns:ore=\"http://www.openarchives.org/ore/terms/\" "
+					+ "xmlns:edm=\"http://www.europeana.eu/schemas/edm/\" "
+					+ "xmlns:schema=\"http://schema.org/\" "
+					+ "xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" "
 					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\""+
 						"xmlns:oa=\"http://www.openannotation.org/spec/core\""+
 						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
@@ -437,7 +454,7 @@ public class ToXML
 		xml+="<oa:hasTarget xml:id=\""+arr[arr.length-1]+"\">"+obj+"</oa:hasTarget>";
 		
 		if(!only_uri)
-			xml+="<dc:type>"+arr[2]+"<dc:type>";
+			xml+="<dc:type>"+arr[2]+"</dc:type>";
 		
 		
 		return xml;

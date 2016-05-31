@@ -21,6 +21,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -153,7 +155,8 @@ public class IDEndpoint {
     }
 	
 	@ApiOperation(value = "Get entity by Id", nickname = "find entity values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/collection/{id}"/*, produces = {"application/json","application/xml"}*/)
+    @RequestMapping(method = RequestMethod.GET, path="/collection/{id}"/*, 
+    	/*produces = {MediaType.APPLICATION_JSON_UTF8_VALUE,MediaType.APPLICATION_XML_VALUE}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
@@ -171,7 +174,7 @@ public class IDEndpoint {
     			defaultValue="json")
       })	
 	String runCollection(@PathVariable String id, HttpServletRequest request) {
-        
+        		
     	Settings settings = ImmutableSettings.settingsBuilder()
 		        .put("cluster.name", "agroknow").build();
     	

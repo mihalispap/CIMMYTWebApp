@@ -155,7 +155,7 @@ public class ToXML
 							if(!count.isEmpty())
 								count=" count=\""+count+"\"";
 							if(!value.isEmpty())
-								xml+="<dc:title"+count+"><![CDATA["+value+"]]><dc:title>";
+								xml+="<dc:title"+count+"><![CDATA["+value+"]]></dc:title>";
 						}
 						
 					xml+="</facet>";

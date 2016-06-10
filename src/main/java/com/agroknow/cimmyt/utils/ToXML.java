@@ -30,9 +30,9 @@ public class ToXML
 					+ "xmlns:edm=\"http://www.europeana.eu/schemas/edm/\" "
 					+ "xmlns:schema=\"http://schema.org/\" "
 					+ "xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" "
-					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\""+
-						"xmlns:oa=\"http://www.openannotation.org/spec/core\""+
-						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
+					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\" "+
+						"xmlns:oa=\"http://www.openannotation.org/spec/core\" "+
+						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" "
 					+ ">";
 			xml+="<total>"+json.get("total")+"</total>";
 			xml+="<facet_name>"+json.get("facet_name")+"</facet_name>";
@@ -96,9 +96,9 @@ public class ToXML
 					+ "xmlns:edm=\"http://www.europeana.eu/schemas/edm/\" "
 					+ "xmlns:schema=\"http://schema.org/\" "
 					+ "xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" "
-					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\""+
-						"xmlns:oa=\"http://www.openannotation.org/spec/core\""+
-						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
+					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\" "+
+						"xmlns:oa=\"http://www.openannotation.org/spec/core\" "+
+						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" "
 					+ ">";
 			xml+="<total>"+json.get("total")+"</total>";
 			xml+="<page>"+json.get("page")+"</page>";
@@ -187,9 +187,10 @@ public class ToXML
 					+ "xmlns:edm=\"http://www.europeana.eu/schemas/edm/\" "
 					+ "xmlns:schema=\"http://schema.org/\" "
 					+ "xmlns:foaf=\"http://xmlns.com/foaf/0.1/\" "
-					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\""+
-						"xmlns:oa=\"http://www.openannotation.org/spec/core\""+
-						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
+					+ "xmlns:dcterms=\"http://purl.org/dc/terms/\" "+
+						"xmlns:oa=\"http://www.openannotation.org/spec/core\" "+
+						"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" "
+						+ ""
 					+ ">";
 			xml+="<total>"+json.get("total")+"</total>";
 			
@@ -575,19 +576,24 @@ public class ToXML
 			JSONArray jvocs=(JSONArray)obj.get("vocabulary");
 			Iterator<String> iterator=jvocs.iterator();
 			
+			xml+=" vocab=\"";
+			
 			while(iterator.hasNext())
 			{
 				String v=iterator.next();
 				
 				if(!v.isEmpty())
-					xml+=" vocabulary=\""+v+"\"";		
+					xml+=""+v+",";		
 			}
+			
+			xml+="\"";
+			xml=xml.replace(",\"","\"");
 		}
 		catch(java.lang.ClassCastException e)
 		{
 			voc=obj.get("vocabulary").toString();
 			if(!voc.isEmpty())
-				xml+=" vocabulary=\""+voc+"\"";
+				xml+=" vocab=\""+voc+"\"";
 		}
 
 		xml+=">";
@@ -665,21 +671,25 @@ public class ToXML
 			JSONArray jvocs=(JSONArray)obj.get("vocabulary");
 			Iterator<String> iterator=jvocs.iterator();
 			
+			xml+=" vocab=\"";
+			
 			while(iterator.hasNext())
 			{
 				String v=iterator.next();
 				
 				if(!v.isEmpty())
-					xml+=" vocabulary=\""+v+"\"";		
+					xml+=""+v+",";		
 			}
+			
+			xml+="\"";
+			xml=xml.replace(",\"","\"");
 		}
 		catch(java.lang.ClassCastException e)
 		{
 			voc=obj.get("vocabulary").toString();
 			if(!voc.isEmpty())
-				xml+=" vocabulary=\""+voc+"\"";
+				xml+=" vocab=\""+voc+"\"";
 		}
-		
 		try
 		{
 			JSONArray jvocs=(JSONArray)obj.get("score");
@@ -1408,7 +1418,7 @@ public class ToXML
 	{
 		String xml="";
 		
-		xml+="<dc:identifier scheme=\"dcterms:URI\" vocabulary=\"VIAF\"><![CDATA["+obj+"]]></foaf:name>";
+		xml+="<dc:identifier scheme=\"dcterms:URI\" vocab=\"VIAF\"><![CDATA["+obj+"]]></foaf:name>";
 		return xml;
 	}
 
@@ -1481,7 +1491,7 @@ public class ToXML
 	{
 		String xml="";
 		
-		xml+="<dc:identifier scheme=\"dcterms:URI\" vocabulary=\"ORCID\"><![CDATA["+obj+"]]></dc:identifier>";
+		xml+="<dc:identifier scheme=\"dcterms:URI\" vocab=\"ORCID\"><![CDATA["+obj+"]]></dc:identifier>";
 		return xml;
 	}
 

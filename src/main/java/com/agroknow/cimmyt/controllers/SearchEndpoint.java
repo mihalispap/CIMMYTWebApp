@@ -194,13 +194,19 @@ public class SearchEndpoint {
 			if(!keyword.isEmpty())
 			{
 				search_parent=true;
-				build_o.must(QueryBuilders
-						.queryString(keyword)
+				
+				String values[]=keyword.split("AND");
+				
+				for(int i=0;i<values.length;i++)
+				{
+					build_o.must(QueryBuilders
+						.queryString(values[i])
 						.field("object.title.value")
 						.field("object.description.value")
 						//.defaultField("object.title.value")
 						//.field("object.description.value")
 						);
+				}
 			}
 			
 			String entity_type=parser.parseEntityType(request);

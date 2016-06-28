@@ -48,7 +48,7 @@ public class IDEndpoint {
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
-        			value = "entity's id", 
+        			value = "entity's id (regardless of the type)", 
         			required = true, 
         			dataType = "string", 
         			paramType = "path", 
@@ -154,13 +154,13 @@ public class IDEndpoint {
         
     }
 	
-	@ApiOperation(value = "Get entity by Id", nickname = "find entity values by id")
+	@ApiOperation(value = "Get collection by Id", nickname = "find entity values by id")
     @RequestMapping(method = RequestMethod.GET, path="/collection/{id}"/*, 
     	/*produces = {MediaType.APPLICATION_JSON_UTF8_VALUE,MediaType.APPLICATION_XML_VALUE}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
-        			value = "entity's id", 
+        			value = "collection's id", 
         			required = true, 
         			dataType = "string", 
         			paramType = "path", 
@@ -244,12 +244,12 @@ public class IDEndpoint {
     }
     
 	
-	@ApiOperation(value = "Get entity by Id", nickname = "find entity values by id")
+	@ApiOperation(value = "Get organization by Id", nickname = "find entity values by id")
     @RequestMapping(method = RequestMethod.GET, path="/organization/{id}"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
-        			value = "entity's id", 
+        			value = "organization's id", 
         			required = true, 
         			dataType = "string", 
         			paramType = "path", 
@@ -333,12 +333,12 @@ public class IDEndpoint {
     }
     
 	
-	@ApiOperation(value = "Get entity by Id", nickname = "find entity values by id")
+	@ApiOperation(value = "Get person by Id", nickname = "find entity values by id")
     @RequestMapping(method = RequestMethod.GET, path="/person/{id}"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
-        			value = "entity's id", 
+        			value = "person's id", 
         			required = true, 
         			dataType = "string", 
         			paramType = "path", 
@@ -422,12 +422,12 @@ public class IDEndpoint {
     }
     
 	
-	@ApiOperation(value = "Get entity by Id", nickname = "find entity values by id")
+	@ApiOperation(value = "Get dataset/software by Id", nickname = "find entity values by id")
     @RequestMapping(method = RequestMethod.GET, path="/dataset_software/{id}"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
-        			value = "entity's id", 
+        			value = "dataset/software's id", 
         			required = true, 
         			dataType = "string", 
         			paramType = "path", 
@@ -511,12 +511,12 @@ public class IDEndpoint {
     }
     
 	
-	@ApiOperation(value = "Get entity by Id", nickname = "find entity values by id")
+	@ApiOperation(value = "Get resource by Id", nickname = "find entity values by id")
     @RequestMapping(method = RequestMethod.GET, path="/resource/{id}"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
-        			value = "entity's id", 
+        			value = "resource's id", 
         			required = true, 
         			dataType = "string", 
         			paramType = "path", 

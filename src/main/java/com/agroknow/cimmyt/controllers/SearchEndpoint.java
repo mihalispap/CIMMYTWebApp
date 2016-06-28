@@ -57,70 +57,70 @@ public class SearchEndpoint {
     			defaultValue="Additive"),
 		@ApiImplicitParam(
     			name = "entity-type", 
-    			value = "", 
+    			value = "limit results by entity type (eg. resource, dataset_software, person, organization, collection)", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="resource"),
 		@ApiImplicitParam(
     			name = "type", 
-    			value = "", 
+    			value = "filter results by type (for resources and datasets/softwares)", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="Journal article"),
 		@ApiImplicitParam(
     			name = "from", 
-    			value = "", 
+    			value = "filter results by those created after this date", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="1975"),
 		@ApiImplicitParam(
     			name = "to", 
-    			value = "", 
+    			value = "filter results by those before this date", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="2016"),
 		@ApiImplicitParam(
     			name = "subject", 
-    			value = "", 
+    			value = "limit results to those having the specified subject(s)", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="genotypesANDplant breedingANDzea mays"),
 		@ApiImplicitParam(
     			name = "collection",
-    			value = "", 
+    			value = "limit results to those belonging in this collection(s)", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="Genetic Resources"),
 		@ApiImplicitParam(
     			name = "author", 
-    			value = "", 
+    			value = "return results with the specified author", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="Crossa, J."),
 		@ApiImplicitParam(
     			name = "language", 
-    			value = "", 
+    			value = "language of the results", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="eng"),
 		@ApiImplicitParam(
     			name = "location", 
-    			value = "", 
+    			value = "limit the results by a specific location(s)", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
     			defaultValue="Mexico"),
 		@ApiImplicitParam(
     			name = "relation", 
-    			value = "", 
+    			value = "filter results having this relation", 
     			required = false, 
     			dataType = "string", 
     			paramType = "query", 
@@ -129,7 +129,7 @@ public class SearchEndpoint {
     			name = "page", 
     			value = "page of the results (0,1...)", 
     			required = false, 
-    			dataType = "integer", 
+    			dataType = "int", 
     			paramType = "query", 
     			defaultValue="0"),
 		@ApiImplicitParam(
@@ -185,6 +185,7 @@ public class SearchEndpoint {
 
 
 			BoolQueryBuilder build_o =QueryBuilders.boolQuery();
+			BoolQueryBuilder build_child =QueryBuilders.boolQuery();
 
 		    List<FilterBuilder> filters=new LinkedList<>();
 		    
@@ -266,7 +267,7 @@ public class SearchEndpoint {
 			String author=parser.parseAuthor(request);
 			if(!author.isEmpty())
 			{
-				/*
+				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=author.split("OR");
 				for(int i=0;i<or_values.length;i++)
@@ -280,8 +281,8 @@ public class SearchEndpoint {
 					}
 					bool_q.should(bool_inner);
 				}
-				build_o.must(bool_q);
-				*/
+				build_child.must(bool_q);
+				
 				
 				String values[]=author.split("AND");
 				
@@ -365,30 +366,42 @@ public class SearchEndpoint {
 				for(int i=0;i<values.length;i++)
 				{
 					BoolQueryBuilder bool_build =QueryBuilders.boolQuery()
-							.must(QueryBuilders.matchQuery("object.title.value", values[i]))
-							.must(QueryBuilders.matchQuery("object.type","collection"));
+							.must(QueryBuilders
+										.queryString(values[i])
+										.field("object.title.value")
+									)
+							.must(QueryBuilders
+									.queryString("collection")
+									.field("object.type")
+								)
+							;//.must(QueryBuilders.matchQuery("type","collection"));
 							
 						SearchResponse response=client.prepareSearch("cimmyt")
 								.setTypes("object")
-								.setSearchType(SearchType.SCAN)
-								.setScroll(new TimeValue(60000))
+								//.setSearchType(SearchType.SCAN)
+								//.setScroll(new TimeValue(60000))
 								.setQuery(bool_build)
 								.setSize(1)
 								.execute()
 								.actionGet();
 					//System.out.println(bool_build.toString());
 						
+						//System.out.println("RESP:"+response.getHits().getTotalHits());
+						//System.out.println(response.getHits().getHits().length);
 					try
 					{
 						for(SearchHit hit : response.getHits().getHits())
 						{
 							filters.add(FilterBuilders.termFilter("collection.id",
 								hit.getId()));
+							//System.out.println("I am passing the id:"+hit.getId());
 							break;
 						}
+						
 					}
 					catch(java.lang.ArrayIndexOutOfBoundsException e)
 					{
+						//System.out.println("I got out of bounds");
 						filters.add(FilterBuilders.termFilter("collection.id",
 								"-999"));
 					}
@@ -643,9 +656,9 @@ public class SearchEndpoint {
 			    
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,build_o,filters,page,search_parent);
-			//}
-			//results=builder.toString();
 			
+			results=builder.buildFrom_beta(client,build_o,build_child,page,search_parent);
+
 		client.close();
 		
 		String format;

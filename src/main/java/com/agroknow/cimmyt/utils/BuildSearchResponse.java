@@ -428,7 +428,8 @@ public class BuildSearchResponse {
 				.execute()
 				.actionGet();
 
-		
+		//System.out.println(QueryBuilders.filteredQuery(
+		//		qb, filter).toString());
 		//List<String> ids=new ArrayList<String>();
 		
 		int total=0;
@@ -527,6 +528,129 @@ public class BuildSearchResponse {
 		
 		//result+=QueryBuilders.filteredQuery(
 		//		qb, filter).toString();
+		return result;
+	}
+
+
+	public String buildFrom_beta(Client client, BoolQueryBuilder build_o, 
+			BoolQueryBuilder build_child, int page, boolean parent_check)
+	{
+		SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client)
+	    		.setIndices("cimmyt");
+		
+		QueryBuilder qb;
+		
+		if(parent_check)
+			qb=QueryBuilders.hasParentQuery("object",build_o);
+		else
+			qb=build_o;
+		
+		BoolQueryBuilder bq=QueryBuilders.boolQuery();
+		bq.must(build_child);
+		bq.must(qb);
+		
+		
+		
+		SearchResponse response = 
+				searchRequestBuilder
+				.setQuery(bq)
+				.addAggregation(AggregationBuilders.terms("authors").field("creator.value")
+                		.size(0).order(Terms.Order.count(false)))
+                .addAggregation(AggregationBuilders.terms("types").field("type")
+                		.size(9999).order(Terms.Order.count(false)))
+                .addAggregation(AggregationBuilders.dateHistogram("dates")
+                		.field("date")
+                		.interval(DateHistogram.Interval.YEAR)
+                		.format("yyyy")
+                		)
+                .addAggregation(AggregationBuilders.terms("locations").field("location.value")
+                		.size(9999).order(Terms.Order.count(false)))
+                .addAggregation(AggregationBuilders.terms("relations").field("relation")
+                		.size(9999).order(Terms.Order.count(false)))
+                .addAggregation(AggregationBuilders.terms("collections").field("collection.id")
+                		.size(9999).order(Terms.Order.count(false)))
+                .setFrom(page*page_size)
+				.setSize(page_size)
+				.execute()
+				.actionGet();
+
+		int total=0;
+		
+		SearchResponse response_ids=client
+				.prepareSearch("cimmyt")
+				.setQuery(bq)
+				.setSource("appid")
+				.setSize(99999)
+				.execute()
+				.actionGet();
+		
+
+		String ids[]=new String[(int) response.getHits().getTotalHits()];
+				
+		for(SearchHit hit : response_ids.getHits().getHits())
+		{
+			ids[total]=hit.getId();
+			total++;
+		}
+		
+		String hits="";
+		for(SearchHit hit : response.getHits().getHits())
+		{
+			String id=hit.getId();
+			
+			GetResponse specific = client.prepareGet("cimmyt", "object", id)
+			        .execute()
+			        .actionGet();
+			hits+=specific.getSourceAsString();
+			hits+=",";
+		}
+		
+		if(response.getHits().getTotalHits()==0)
+			return "{\"total\":0,\"page\":0,\"page_size:\":0"
+					+",\"time_elapsed\":"+
+						((double)response.getTookInMillis()/1000+(double)response_ids.getTookInMillis()/1000)
+					+",\"facets\":[]"
+					+ ",\"results\":[]"
+					+ "}";
+		
+		
+		
+		SearchResponse response_o=
+				client.prepareSearch("cimmyt")
+				.setTypes("object")
+				.setQuery(QueryBuilders.idsQuery().ids(ids))
+	    		.addAggregation(AggregationBuilders.terms("entity-types").field("object.type")
+                		.size(9999).order(Terms.Order.count(false)))
+	    		.addAggregation(AggregationBuilders.terms("subjects").field("subject.value")
+                		.size(9999).order(Terms.Order.count(false)))
+	    		.addAggregation(AggregationBuilders.terms("langs").field("language.value")
+                		.size(9999).order(Terms.Order.count(false)))
+	    		.setFrom(page*page_size)
+				.setSize(page_size)
+	    		.execute()
+	    		.actionGet();
+		
+		String result="{\"total\":"+response.getHits().getTotalHits()
+				+",\"page\":"+page
+				+",\"page_size\":"+page_size
+				+",\"time_elapsed\":"+(double)response.getTookInMillis()/1000
+				+",\"facets\":["
+				+"{"+buildFacet(response_o, "entity-types")+""
+				+",{"+buildFacet(response, "types")+""
+				//+",\"facet\":{"+buildFacet(response, "dates")+"}"
+				+",{"+buildFacetHistogram(response, "dates")+""
+				+",{"+buildFacet(response_o, "langs")+""
+				+",{"+buildFacet(response, "authors")+""
+				+",{"+buildFacet(response, "locations")+""
+				+",{"+buildFacet(response, "relations")+""
+				+",{"+buildFacet(response_o, "subjects")+""
+				+",{"+buildFacet(client, response, "collections")+""				
+				+ "],\"results\":[";
+		
+		result+=hits;
+		result+="]}";
+		result=result.replace(",]}", "]}");
+		
 		return result;
 	}
 

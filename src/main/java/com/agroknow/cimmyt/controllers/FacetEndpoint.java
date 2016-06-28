@@ -33,7 +33,7 @@ import io.swagger.annotations.ApiOperation;
 @RestController
 public class FacetEndpoint {
 
-	
+
 	@RequestMapping(value="/facet/entity-types", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for all entity types")
 	@ApiImplicitParams({
@@ -72,6 +72,63 @@ public class FacetEndpoint {
 			TermsFacet f=(TermsFacet) response.getFacets()
 					.facetsAsMap().get("entity_types");
 			String facet_name="entity_types";
+			
+			BuildSearchResponse builder=new BuildSearchResponse();
+			results=builder.buildFrom(client,f, response, facet_name);
+		
+		client.close();
+		
+		String format;
+		ParseGET parser=new ParseGET();
+		format=parser.parseFormat(request);
+		if(format.equals("xml"))
+		{
+			ToXML converter=new ToXML();
+			results=converter.convertToXMLFacet(results);
+		}
+		
+
+    	return results;
+        
+    }
+	@RequestMapping(value="/facet/record-types", method={RequestMethod.GET})
+	@ApiOperation(value = "Facet for all record types")
+	@ApiImplicitParams({
+        @ApiImplicitParam(
+    			name = "format", 
+    			value = "output format", 
+    			required = true, 
+    			dataType = "string", 
+    			paramType = "query",
+    			defaultValue="json")
+      })
+    String getAllT(HttpServletRequest request) {
+        
+    	Settings settings = ImmutableSettings.settingsBuilder()
+		        .put("cluster.name", "agroknow").build();
+    	
+    	Client client = new TransportClient(settings)
+		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
+		System.out.println("Status:"+client.settings().toString());
+		// on shutdown
+		String results="";
+				
+			TermsFacetBuilder facet =
+					FacetBuilders.termsFacet("types").field("type").size(9999);
+			
+			SearchResponse response=
+					client.prepareSearch("cimmyt")
+					.setTypes("resource","dataset_software")
+					.setSearchType(SearchType.SCAN)
+					.setScroll(new TimeValue(60000))
+					.setQuery(QueryBuilders.matchAllQuery())
+					.addFacet(facet)
+					.execute().actionGet();
+			
+			TermsFacet f=(TermsFacet) response.getFacets()
+					.facetsAsMap().get("types");
+			String facet_name="types";
 			
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,f, response, facet_name);

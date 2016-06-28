@@ -646,7 +646,7 @@ public class BuildSearchResponse {
 				+",{"+buildFacet(response_o, "subjects")+""
 				+",{"+buildFacet(client, response, "collections")+""				
 				+ "],\"results\":[";
-		
+		 
 		result+=hits;
 		result+="]}";
 		result=result.replace(",]}", "]}");

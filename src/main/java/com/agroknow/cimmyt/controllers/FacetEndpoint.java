@@ -147,7 +147,7 @@ public class FacetEndpoint {
 
     	return results;
         
-    }
+    } 
 	@RequestMapping(value="/facet/collections", method={RequestMethod.GET})
 	@ApiOperation(value = "Facet for all collections")
 	@ApiImplicitParams({

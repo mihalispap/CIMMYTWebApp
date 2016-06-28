@@ -653,7 +653,7 @@ public class SearchEndpoint {
 			    filtersB.add(FilterBuilders.termFilter("location.value","Ethiopia"));
 			    filtersB.add(FilterBuilders.termFilter("creator.value","Asmare Yallew"));
 			}
-			    
+			     
 			BuildSearchResponse builder=new BuildSearchResponse();
 			results=builder.buildFrom(client,build_o,filters,page,search_parent);
 			

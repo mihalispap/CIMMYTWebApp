@@ -239,7 +239,7 @@ public class SearchEndpoint {
 			String type=parser.parseType(request);
 			if(!type.isEmpty())
 			{
-				/*
+				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=type.split("OR");
 				for(int i=0;i<or_values.length;i++)
@@ -249,17 +249,24 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						bool_inner.must(QueryBuilders.termQuery("type", and_values[j]));
+						//bool_inner.must(QueryBuilders.termQuery("type", and_values[j]));
+
+						bool_inner.must(QueryBuilders
+								.fuzzyLikeThisQuery("type")
+								.likeText(and_values[j])
+								.maxQueryTerms(50)
+								);						
+						
 					}
 					bool_q.should(bool_inner);
 				}
-				build_o.must(bool_q);
-				*/
+				build_child.must(bool_q);
 				
-				String values[]=type.split("AND");
+				
+				/*String values[]=type.split("AND");
 				
 				for(int i=0;i<values.length;i++)
-					filters.add(FilterBuilders.termFilter("type",values[i]));
+					filters.add(FilterBuilders.termFilter("type",values[i]));*/
 			}
 				//filters.add(FilterBuilders.termFilter("type",type));
 				//build.must(QueryBuilders.matchQuery("type", type));
@@ -277,105 +284,60 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						bool_inner.must(QueryBuilders.termQuery("creator.value", and_values[j]));
+						//bool_inner.must(QueryBuilders.termQuery("creator.value", and_values[j]));
+						//bool_inner.must(QueryBuilders.fuzzyQuery("creator.value", and_values[j]));
+					
+						bool_inner.must(QueryBuilders
+								.fuzzyLikeThisQuery("creator.value")
+								.likeText(and_values[j])
+								.maxQueryTerms(50)
+								);
+					
 					}
 					bool_q.should(bool_inner);
 				}
 				build_child.must(bool_q);
 				
 				
-				String values[]=author.split("AND");
+				/*String values[]=author.split("AND");
 				
 				for(int i=0;i<values.length;i++)
-					filters.add(FilterBuilders.termFilter("creator.value",values[i]));
+					filters.add(FilterBuilders.termFilter("creator.value",values[i]));*/
 			}	
 			
 			String collection=parser.parseCollection(request);
 			if(!collection.isEmpty())
-			{
-				/*List<FilterBuilder> filtersOR=new LinkedList<>();
-				
-				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
-				String or_values[]=collection.split("OR");
-				for(int i=0;i<or_values.length;i++)
-				{
-					String and_values[]=or_values[i].split("AND");
-					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
-					
-					List<FilterBuilder> filtersAND=new LinkedList<>();
-					for(int j=0;j<and_values.length;j++)
-					{
-						
-						BoolQueryBuilder bool_build =QueryBuilders.boolQuery()
-								.must(QueryBuilders.matchQuery("object.title.value", and_values[j]))
-								.must(QueryBuilders.matchQuery("object.type","collection"));
-								
-							SearchResponse response=client.prepareSearch("cimmyt")
-									.setTypes("object")
-									.setSearchType(SearchType.SCAN)
-									.setScroll(new TimeValue(60000))
-									.setQuery(bool_build)
-									.setSize(1)
-									.execute()
-									.actionGet();
-						
-							System.out.println(bool_build.toString()+", "
-									+ ":"+response.getHits().getTotalHits());
-							
-						try
-						{
-							//System.out.println(response.getHits().getAt(0).id());
-							
-							//System.out.println(response.getHits().getHits()[0].getSourceAsString());
-							
-							for(SearchHit hit : response.getHits().getHits())
-							{
-								System.out.println("my testing");
-								filtersAND.add(FilterBuilders.termFilter("collection.id",
-									hit.getId()));
-								System.out.println("my testing2222");
-								System.out.println("I got here.."+filtersAND.toString());
-								
-								break;
-							}
-							System.out.println("asdasd");
-						}
-						catch(java.lang.ArrayIndexOutOfBoundsException e)
-						{
-							System.out.println("HERE");
-							filtersAND.add(FilterBuilders.termFilter("collection.id",
-									"-999"));
-						}
-						
-						if(response.getHits().getTotalHits()==0)
-							filtersAND.add(FilterBuilders.termFilter("collection.id",
-									"-999"));
-						
-						
-					}
-					filtersOR.add(FilterBuilders.orFilter(filtersAND.toArray(
-							new FilterBuilder[filtersAND.size()])));
-				}
-				filters.add(FilterBuilders.andFilter(filtersOR.toArray(
-							new FilterBuilder[filtersOR.size()])));
-				*/
-				
+			{				
 				
 				String values[]=collection.split("AND");
 				
 				for(int i=0;i<values.length;i++)
 				{
 					BoolQueryBuilder bool_build =QueryBuilders.boolQuery()
-							.must(QueryBuilders
+							/*.must(QueryBuilders
 										.queryString(values[i])
 										.field("object.title.value")
-									)
+									)*/
+							.must(QueryBuilders
+									.fuzzyLikeThisQuery("object.title.value")
+									.likeText(values[i])
+									.maxQueryTerms(50)
+								)
 							.must(QueryBuilders
 									.queryString("collection")
 									.field("object.type")
 								)
 							;//.must(QueryBuilders.matchQuery("type","collection"));
 							
+					/*
+					bool_inner.must(QueryBuilders
+							.fuzzyLikeThisQuery("creator.value")
+							.likeText(and_values[j])
+							.maxQueryTerms(50)
+							);
+					*/
+					
+					
 						SearchResponse response=client.prepareSearch("cimmyt")
 								.setTypes("object")
 								//.setSearchType(SearchType.SCAN)
@@ -388,12 +350,20 @@ public class SearchEndpoint {
 						
 						//System.out.println("RESP:"+response.getHits().getTotalHits());
 						//System.out.println(response.getHits().getHits().length);
+						
+						
+						
 					try
 					{
 						for(SearchHit hit : response.getHits().getHits())
 						{
-							filters.add(FilterBuilders.termFilter("collection.id",
-								hit.getId()));
+							build_child.must(
+									QueryBuilders.termQuery("collection.id",hit.getId())
+									);
+							
+							
+							//filters.add(FilterBuilders.termFilter("collection.id",
+							//	hit.getId()));
 							//System.out.println("I am passing the id:"+hit.getId());
 							break;
 						}
@@ -402,13 +372,21 @@ public class SearchEndpoint {
 					catch(java.lang.ArrayIndexOutOfBoundsException e)
 					{
 						//System.out.println("I got out of bounds");
-						filters.add(FilterBuilders.termFilter("collection.id",
-								"-999"));
+						//filters.add(FilterBuilders.termFilter("collection.id",
+						//		"-999"));
+						
+						build_child.must(
+								QueryBuilders.termQuery("collection.id","999")
+								);
+						
 					}
 					
 					if(response.getHits().getTotalHits()==0)
-						filters.add(FilterBuilders.termFilter("collection.id",
-								"-999"));
+						build_child.must(
+								QueryBuilders.termQuery("collection.id","999")
+								);
+						//filters.add(FilterBuilders.termFilter("collection.id",
+						//		"-999"));
 					
 				}
 			}			
@@ -427,7 +405,14 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						bool_inner.must(QueryBuilders.termQuery("subject.value", and_values[j]));
+						//bool_inner.must(QueryBuilders.termQuery("subject.value", and_values[j]));
+						
+						bool_inner.must(QueryBuilders
+								.fuzzyLikeThisQuery("subject.value")
+								.likeText(and_values[j])
+								.maxQueryTerms(50)
+								);
+						
 					}
 					bool_q.should(bool_inner);
 				}
@@ -471,7 +456,7 @@ public class SearchEndpoint {
 			String location=parser.parseLocation(request);
 			if(!location.isEmpty())
 			{
-				/*
+				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=location.split("OR");
 				for(int i=0;i<or_values.length;i++)
@@ -481,17 +466,23 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						bool_inner.must(QueryBuilders.termQuery("location.value", and_values[j]));
+						//bool_inner.must(QueryBuilders.termQuery("location.value", and_values[j]));
+						
+						bool_inner.must(QueryBuilders
+								.fuzzyLikeThisQuery("location.value")
+								.likeText(and_values[j])
+								.maxQueryTerms(50)
+								);
 					}
 					bool_q.should(bool_inner);
 				}
-				build_o.must(bool_q);
-				*/
+				build_child.must(bool_q);
 				
-				String values[]=location.split("AND");
+				
+				/*String values[]=location.split("AND");
 				
 				for(int i=0;i<values.length;i++)
-					filters.add(FilterBuilders.termFilter("location.value",values[i]));
+					filters.add(FilterBuilders.termFilter("location.value",values[i]));*/
 			}
 				//filters.add(FilterBuilders.termFilter("location.value",location));
 				//build.must(QueryBuilders.matchQuery("location.value", location));
@@ -499,7 +490,7 @@ public class SearchEndpoint {
 			String relation=parser.parseRelation(request);
 			if(!relation.isEmpty())
 			{
-				/*
+				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=relation.split("OR");
 				for(int i=0;i<or_values.length;i++)
@@ -509,17 +500,22 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						bool_inner.must(QueryBuilders.termQuery("relation", and_values[j]));
+						bool_inner.must(QueryBuilders
+								.fuzzyLikeThisQuery("relation")
+								.likeText(and_values[j])
+								.maxQueryTerms(50)
+								);
+						//bool_inner.must(QueryBuilders.termQuery("relation", and_values[j]));
 					}
 					bool_q.should(bool_inner);
 				}
 				build_o.must(bool_q);
-				*/
 				
-				String values[]=relation.split("AND");
+				
+				/*String values[]=relation.split("AND");
 				
 				for(int i=0;i<values.length;i++)
-					filters.add(FilterBuilders.termFilter("relation",values[i]));
+					filters.add(FilterBuilders.termFilter("relation",values[i]));*/
 			}
 				//filters.add(FilterBuilders.termFilter("relation",relation));
 				//build.must(QueryBuilders.matchQuery("relation", relation));
@@ -545,117 +541,21 @@ public class SearchEndpoint {
 					to_date+="-12-31";
 				//}
 				
-				filters.add(FilterBuilders
+				build_child.must(
+						QueryBuilders
+						.rangeQuery("date")
+						.gte(from_date)
+						.lte(to_date)
+						);	
+					
+				/*filters.add(FilterBuilders
 						.rangeFilter("date")
 						.gte(from_date)
-						.lte(to_date));
+						.lte(to_date));*/
 			}
-			
-			
-			/*if(1==0)
-			{
+			  
 			BuildSearchResponse builder=new BuildSearchResponse();
-			results=builder.buildFrom(client,build,page);
-			}
-			*/
-			if(1==0)
-			{
-				//create the searchRequestBuilder object.
-			    SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client)
-			    		.setIndices("cimmyt");
-
-			    //Query 1. Search on all books that have the term 'book' in the title and 
-			    //return the 'authors'.
-			    HasChildQueryBuilder bookNameQuery = 
-			    		QueryBuilders.hasChildQuery("dataset_software", 
-			    				QueryBuilders.matchQuery("location.value", "Mexico"));
-			    System.out.println("Exectuing Query 1");
-			    SearchResponse searchResponse1 = 
-			    		searchRequestBuilder.setQuery(bookNameQuery).execute().actionGet();
-			    System.out.println("There were " + searchResponse1.getHits().getTotalHits()  + 
-			    		" results found for Query 1.");
-			    //System.out.println(searchResponse1.toString());
-			    System.out.println();
-
-			    //Query 2. Search on all authors that have the terms 'jon doe' in 
-			    //the name and return the 'books'.
-			    HasParentQueryBuilder authorNameQuery = 
-			    		QueryBuilders.hasParentQuery("object", 
-			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
-			    System.out.println("Exectuing Query 2");
-			    SearchResponse searchResponse2 = 
-			    		searchRequestBuilder.setQuery(authorNameQuery).execute().actionGet();
-			    System.out.println("There were " + 
-			    		searchResponse2.getHits().getTotalHits()  + " results found for Query 2.");
-			    //System.out.println(searchResponse2.toString());
-			    System.out.println();
-
-			    //Query 3. Search for books written by 'jane smith' and type Fiction.
-			    //Could get all ids of object and apply aggregation there OR go @below solution
-			    /*TermFilterBuilder termFilter = FilterBuilders.termFilter("location.value", "Mexico");
-			    HasParentQueryBuilder authorNameQuery2 = 
-			    		QueryBuilders.hasParentQuery("object", 
-			    				QueryBuilders.matchQuery("title.value", "Evaluation"));
-			    
-			    SearchResponse searchResponse3 = 
-			    		searchRequestBuilder.setQuery(QueryBuilders.filteredQuery(
-			    				authorNameQuery2, termFilter))
-			    		.addAggregation(AggregationBuilders.terms("appids").field("appid")
-		                		.size(9999).order(Terms.Order.count(false)))
-			    		//.addAggregation(AggregationBuilders.terms("subjects").field("_parent.subject.value")
-		                //		.size(9999).order(Terms.Order.count(false)))
-		                .addAggregation(AggregationBuilders.terms("authors").field("creator.value")
-		                		.size(9999).order(Terms.Order.count(false)))
-			    		.execute()
-			    		.actionGet();
-			    //PERFECT
-			    SearchResponse searchResponse5=
-			    		searchRequestBuilder
-			    		.setQuery(QueryBuilders.idsQuery().ids("11529_10066","11529_10565"))
-			    		//.addAggregation(AggregationBuilders.terms("appids").field("appid")
-		                //		.size(9999).order(Terms.Order.count(false)))
-			    		.addAggregation(AggregationBuilders.terms("subjects2").field("subject.value")
-		                		.size(9999).order(Terms.Order.count(false)))
-		                //.addAggregation(AggregationBuilders.terms("authors").field("creator.value")
-		                //		.size(9999).order(Terms.Order.count(false)))
-			    		.execute()
-			    		.actionGet();
-			    
-			    HasChildQueryBuilder bookNameQuery22 = 
-			    		QueryBuilders.hasChildQuery("resource", 
-			    				QueryBuilders.matchQuery("location.value", "Mexico"));
-			    TermFilterBuilder termFilter2 = FilterBuilders.termFilter("title.value", "evaluation");
-			    System.out.println("Exectuing Query 4");
-			    SearchResponse searchResponse4 = 
-			    		searchRequestBuilder.setQuery(QueryBuilders.filteredQuery(
-			    				bookNameQuery22, termFilter2))
-			    		.addAggregation(AggregationBuilders.terms("subjects").field("subject.value")
-		                		.size(9999).order(Terms.Order.count(false)))
-			    		.execute()
-			    		.actionGet();
-			    */
-				
-				if(!keyword.isEmpty())
-				{
-					build_o.must(QueryBuilders
-							.queryString(keyword)
-							.defaultField("title.value")
-							//.field("object.description.value")
-							);
-				}
-				
-				if(!subject.isEmpty())
-					build_o.must(QueryBuilders.matchQuery("subject.value", subject));
-				
-			    
-			    List<FilterBuilder> filtersB=new LinkedList<>();
-			    
-			    filtersB.add(FilterBuilders.termFilter("location.value","Ethiopia"));
-			    filtersB.add(FilterBuilders.termFilter("creator.value","Asmare Yallew"));
-			}
-			     
-			BuildSearchResponse builder=new BuildSearchResponse();
-			results=builder.buildFrom(client,build_o,filters,page,search_parent);
+			//results=builder.buildFrom(client,build_o,filters,page,search_parent);
 			
 			results=builder.buildFrom_beta(client,build_o,build_child,page,search_parent);
 

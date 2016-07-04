@@ -270,8 +270,8 @@ public class BuildSearchResponse {
 	}
 
 
-	public String buildFrom(Client client, BoolQueryBuilder build_object, BoolQueryBuilder build_resource
-		, int page)
+	public String buildFrom(Client client, BoolQueryBuilder build_object, 
+			BoolQueryBuilder build_resource, int page)
 	{
 		SearchResponse response_o = client.prepareSearch("cimmyt")
 				.setTypes("person", "organization","object", 
@@ -535,6 +535,9 @@ public class BuildSearchResponse {
 	public String buildFrom_beta(Client client, BoolQueryBuilder build_o, 
 			BoolQueryBuilder build_child, int page, boolean parent_check)
 	{
+
+		//System.out.println("STARTING");
+		
 		SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client)
 	    		.setIndices("cimmyt");
 		
@@ -554,18 +557,18 @@ public class BuildSearchResponse {
 		SearchResponse response = 
 				searchRequestBuilder
 				.setQuery(bq)
-				.addAggregation(AggregationBuilders.terms("authors").field("creator.value")
+				.addAggregation(AggregationBuilders.terms("authors").field("creator.value.raw")
                 		.size(0).order(Terms.Order.count(false)))
-                .addAggregation(AggregationBuilders.terms("types").field("type")
+                .addAggregation(AggregationBuilders.terms("types").field("type.raw")
                 		.size(9999).order(Terms.Order.count(false)))
                 .addAggregation(AggregationBuilders.dateHistogram("dates")
                 		.field("date")
                 		.interval(DateHistogram.Interval.YEAR)
                 		.format("yyyy")
                 		)
-                .addAggregation(AggregationBuilders.terms("locations").field("location.value")
+                .addAggregation(AggregationBuilders.terms("locations").field("location.value.raw")
                 		.size(9999).order(Terms.Order.count(false)))
-                .addAggregation(AggregationBuilders.terms("relations").field("relation")
+                .addAggregation(AggregationBuilders.terms("relations").field("relation.raw")
                 		.size(9999).order(Terms.Order.count(false)))
                 .addAggregation(AggregationBuilders.terms("collections").field("collection.id")
                 		.size(9999).order(Terms.Order.count(false)))
@@ -585,12 +588,27 @@ public class BuildSearchResponse {
 				.actionGet();
 		
 
+		System.out.println("here1");
+		
+		
+		
 		String ids[]=new String[(int) response.getHits().getTotalHits()];
 				
 		for(SearchHit hit : response_ids.getHits().getHits())
 		{
 			ids[total]=hit.getId();
 			total++;
+			
+			/*try
+			{
+				ids[total]=hit.getId();
+				total++;
+			}
+			catch(java.lang.ArrayIndexOutOfBoundsException e)
+			{
+				e.printStackTrace();
+				//break;
+			}*/
 		}
 		
 		String hits="";
@@ -604,9 +622,11 @@ public class BuildSearchResponse {
 			hits+=specific.getSourceAsString();
 			hits+=",";
 		}
+
+		
 		
 		if(response.getHits().getTotalHits()==0)
-			return "{\"total\":0,\"page\":0,\"page_size:\":0"
+			return bq.toString()+"{\"total\":0,\"page\":0,\"page_size:\":0"
 					+",\"time_elapsed\":"+
 						((double)response.getTookInMillis()/1000+(double)response_ids.getTookInMillis()/1000)
 					+",\"facets\":[]"
@@ -621,7 +641,7 @@ public class BuildSearchResponse {
 				.setQuery(QueryBuilders.idsQuery().ids(ids))
 	    		.addAggregation(AggregationBuilders.terms("entity-types").field("object.type")
                 		.size(9999).order(Terms.Order.count(false)))
-	    		.addAggregation(AggregationBuilders.terms("subjects").field("subject.value")
+	    		.addAggregation(AggregationBuilders.terms("subjects").field("subject.value.raw")
                 		.size(9999).order(Terms.Order.count(false)))
 	    		.addAggregation(AggregationBuilders.terms("langs").field("language.value")
                 		.size(9999).order(Terms.Order.count(false)))
@@ -650,6 +670,10 @@ public class BuildSearchResponse {
 		result+=hits;
 		result+="]}";
 		result=result.replace(",]}", "]}");
+		
+		//result=bq.toString()+result;
+		
+		//System.out.println("I RUN");
 		
 		return result;
 	}

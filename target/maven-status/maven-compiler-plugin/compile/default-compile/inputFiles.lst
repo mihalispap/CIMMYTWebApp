@@ -14,6 +14,7 @@
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/SearchEndpoint.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/TypeController.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/IDEndpoint.java
+/home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/utils/GetConfig.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/ObjectController.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/LocationController.java
 /home/mihalis/Downloads/springDataElasticsearch/src/main/java/com/agroknow/cimmyt/controllers/DateController.java

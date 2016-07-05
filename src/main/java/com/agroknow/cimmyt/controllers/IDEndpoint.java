@@ -205,9 +205,17 @@ public class IDEndpoint {
 		String results="";
 		
 		int size=0;
-		if(!response.getSourceAsString().isEmpty())
-			size=1;
-		
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			return "{\"total\":0,"
+					+ ",\"results\":[]"
+					+ "}";
+		}
 
 		String format;
 		ParseGET parser=new ParseGET();

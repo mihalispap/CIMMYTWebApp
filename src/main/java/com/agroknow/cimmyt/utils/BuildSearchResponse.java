@@ -536,7 +536,7 @@ public class BuildSearchResponse {
 			BoolQueryBuilder build_child, int page, boolean parent_check)
 	{
 
-		//System.out.println("STARTING");
+		System.out.println("STARTING");
 		
 		SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client)
 	    		.setIndices("cimmyt");
@@ -588,7 +588,7 @@ public class BuildSearchResponse {
 				.actionGet();
 		
 
-		System.out.println("here1");
+		//System.out.println("here1");
 		
 		
 		
@@ -626,7 +626,7 @@ public class BuildSearchResponse {
 		
 		
 		if(response.getHits().getTotalHits()==0)
-			return bq.toString()+"{\"total\":0,\"page\":0,\"page_size:\":0"
+			return "{\"total\":0,\"page\":0,\"page_size:\":0"
 					+",\"time_elapsed\":"+
 						((double)response.getTookInMillis()/1000+(double)response_ids.getTookInMillis()/1000)
 					+",\"facets\":[]"
@@ -673,7 +673,7 @@ public class BuildSearchResponse {
 		
 		//result=bq.toString()+result;
 		
-		//System.out.println("I RUN");
+		System.out.println("I RAN");
 		
 		return result;
 	}

@@ -1,5 +1,6 @@
 package com.agroknow.cimmyt.controllers;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.agroknow.cimmyt.utils.BuildSearchResponse;
+import com.agroknow.cimmyt.utils.GetConfig;
 import com.agroknow.cimmyt.utils.ParseGET;
 import com.agroknow.cimmyt.utils.ToXML;
 
@@ -189,25 +191,47 @@ public class SearchEndpoint {
 
 		    List<FilterBuilder> filters=new LinkedList<>();
 		    
-		    //filters.add(FilterBuilders.termFilter("location.value","Ethiopia"));
+		    GetConfig config=new GetConfig();
+			int fuzzy;
+				
 		    
 			String keyword=parser.parseKeyword(request);
 			if(!keyword.isEmpty())
 			{
 				search_parent=true;
 				
-				String values[]=keyword.split("AND");
+				String or_values[]=keyword.split("OR");
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				
-				for(int i=0;i<values.length;i++)
+				for(int j=0;j<or_values.length;j++)
 				{
-					build_o.must(QueryBuilders
-						.queryString(values[i])
-						.field("object.title.value")
-						.field("object.description.value")
-						//.defaultField("object.title.value")
-						//.field("object.description.value")
-						);
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					String values[]=or_values[j].split("AND");
+					
+					for(int i=0;i<values.length;i++)
+					{
+						/*bool_inner.must(QueryBuilders
+								.queryString(values[i])
+								.field("object.title.value")
+								.field("object.description.value"));*/
+						
+						bool_inner.must(QueryBuilders
+								.fuzzyLikeThisQuery("object.title.value",
+										"object.description.value")
+								.likeText(values[i])
+								.maxQueryTerms(2));
+						
+						
+						/*build_o.must(QueryBuilders
+							.queryString(values[i])
+							.field("object.title.value")
+							.field("object.description.value")
+							);*/
+					}
+					
+					bool_q.should(bool_inner);
 				}
+				build_o.must(bool_q);
 			}
 			
 			String entity_type=parser.parseEntityType(request);
@@ -239,6 +263,16 @@ public class SearchEndpoint {
 			String type=parser.parseType(request);
 			if(!type.isEmpty())
 			{
+				try {
+					fuzzy = Integer.valueOf(config.getValue("fuzzy_type"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				}
+				
 				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=type.split("OR");
@@ -249,13 +283,37 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						//bool_inner.must(QueryBuilders.termQuery("type", and_values[j]));
-
-						bool_inner.must(QueryBuilders
-								.fuzzyLikeThisQuery("type")
-								.likeText(and_values[j])
-								.maxQueryTerms(50)
-								);						
+						
+						boolean has_not=false;
+						
+						if(and_values[j].contains("NOT"))
+						{
+							has_not=true;
+							and_values[j]=and_values[j].replace("NOT", "");
+						}
+						
+						if(!has_not)
+						{
+							if(fuzzy!=1)
+								bool_inner.must(QueryBuilders.termQuery("type", and_values[j]));
+							else
+								bool_inner.must(QueryBuilders
+									.fuzzyLikeThisQuery("type")
+									.likeText(and_values[j])
+									.maxQueryTerms(2)
+									);
+						}
+						else
+						{
+							if(fuzzy!=1)
+								bool_inner.mustNot(QueryBuilders.termQuery("type", and_values[j]));
+							else
+								bool_inner.mustNot(QueryBuilders
+									.fuzzyLikeThisQuery("type")
+									.likeText(and_values[j])
+									.maxQueryTerms(2)
+									);
+						}
 						
 					}
 					bool_q.should(bool_inner);
@@ -274,6 +332,15 @@ public class SearchEndpoint {
 			String author=parser.parseAuthor(request);
 			if(!author.isEmpty())
 			{
+				try {
+					fuzzy = Integer.valueOf(config.getValue("fuzzy_author"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				}
 				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=author.split("OR");
@@ -284,13 +351,13 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						//bool_inner.must(QueryBuilders.termQuery("creator.value", and_values[j]));
-						//bool_inner.must(QueryBuilders.fuzzyQuery("creator.value", and_values[j]));
-					
-						bool_inner.must(QueryBuilders
+						if(fuzzy!=1)
+							bool_inner.must(QueryBuilders.termQuery("creator.value", and_values[j]));
+						else
+							bool_inner.must(QueryBuilders
 								.fuzzyLikeThisQuery("creator.value")
 								.likeText(and_values[j])
-								.maxQueryTerms(50)
+								.maxQueryTerms(2)
 								);
 					
 					}
@@ -308,93 +375,102 @@ public class SearchEndpoint {
 			String collection=parser.parseCollection(request);
 			if(!collection.isEmpty())
 			{				
+				try {
+					fuzzy = Integer.valueOf(config.getValue("fuzzy_collection"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				}
 				
-				String values[]=collection.split("AND");
-				
-				for(int i=0;i<values.length;i++)
+				String or_values[]=collection.split("OR");
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				for(int j=0;j<or_values.length;j++)
 				{
-					BoolQueryBuilder bool_build =QueryBuilders.boolQuery()
-							/*.must(QueryBuilders
-										.queryString(values[i])
-										.field("object.title.value")
-									)*/
-							.must(QueryBuilders
-									.fuzzyLikeThisQuery("object.title.value")
-									.likeText(values[i])
-									.maxQueryTerms(50)
-								)
-							.must(QueryBuilders
-									.queryString("collection")
-									.field("object.type")
-								)
-							;//.must(QueryBuilders.matchQuery("type","collection"));
+				
+					String values[]=or_values[j].split("AND");
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					
+					for(int i=0;i<values.length;i++)
+					{					
+						BoolQueryBuilder bool_build =QueryBuilders.boolQuery();
+						
+						if(fuzzy!=1)
+								bool_build.must(QueryBuilders
+											.queryString(values[i])
+											.field("object.title.value")
+										);
+						else
+								bool_build.must(QueryBuilders
+										.fuzzyLikeThisQuery("object.title.value")
+										.likeText(values[i])
+										.maxQueryTerms(2)
+									);
+						
+						bool_build.must(QueryBuilders
+										.queryString("collection")
+										.field("object.type")
+									)
+								;//.must(QueryBuilders.matchQuery("type","collection"));
+											
+							SearchResponse response=client.prepareSearch("cimmyt")
+									.setTypes("object")
+									//.setSearchType(SearchType.SCAN)
+									//.setScroll(new TimeValue(60000))
+									.setQuery(bool_build)
+									.setSize(1)
+									.execute()
+									.actionGet();
 							
-					/*
-					bool_inner.must(QueryBuilders
-							.fuzzyLikeThisQuery("creator.value")
-							.likeText(and_values[j])
-							.maxQueryTerms(50)
-							);
-					*/
-					
-					
-						SearchResponse response=client.prepareSearch("cimmyt")
-								.setTypes("object")
-								//.setSearchType(SearchType.SCAN)
-								//.setScroll(new TimeValue(60000))
-								.setQuery(bool_build)
-								.setSize(1)
-								.execute()
-								.actionGet();
-					//System.out.println(bool_build.toString());
-						
-						//System.out.println("RESP:"+response.getHits().getTotalHits());
-						//System.out.println(response.getHits().getHits().length);
-						
-						
-						
-					try
-					{
-						for(SearchHit hit : response.getHits().getHits())
+						try
 						{
-							build_child.must(
-									QueryBuilders.termQuery("collection.id",hit.getId())
+							for(SearchHit hit : response.getHits().getHits())
+							{
+								/*build_child*/
+								bool_inner.must(
+										QueryBuilders.termQuery("collection.id",hit.getId())
+										);
+								break;
+							}
+							
+						}
+						catch(java.lang.ArrayIndexOutOfBoundsException e)
+						{
+							/*build_child*/
+								bool_inner.must(
+									QueryBuilders.termQuery("collection.id","998")
 									);
 							
-							
-							//filters.add(FilterBuilders.termFilter("collection.id",
-							//	hit.getId()));
-							//System.out.println("I am passing the id:"+hit.getId());
-							break;
 						}
 						
+						if(response.getHits().getTotalHits()==0)
+							/*build_child*/
+								bool_inner.must(
+									QueryBuilders.termQuery("collection.id","999")
+									);
 					}
-					catch(java.lang.ArrayIndexOutOfBoundsException e)
-					{
-						//System.out.println("I got out of bounds");
-						//filters.add(FilterBuilders.termFilter("collection.id",
-						//		"-999"));
-						
-						build_child.must(
-								QueryBuilders.termQuery("collection.id","999")
-								);
-						
-					}
-					
-					if(response.getHits().getTotalHits()==0)
-						build_child.must(
-								QueryBuilders.termQuery("collection.id","999")
-								);
-						//filters.add(FilterBuilders.termFilter("collection.id",
-						//		"-999"));
-					
+					bool_q.should(bool_inner);
 				}
+				
+				build_child.must(bool_q);
 			}			
 			
 			String subject=parser.parseSubject(request);
 			if(!subject.isEmpty())
 			{
 				search_parent=true;
+				
+				try {
+					fuzzy = Integer.valueOf(config.getValue("fuzzy_subject"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				}
 				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=subject.split("OR");
@@ -405,12 +481,13 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						//bool_inner.must(QueryBuilders.termQuery("subject.value", and_values[j]));
-						
-						bool_inner.must(QueryBuilders
+						if(fuzzy!=1)
+							bool_inner.must(QueryBuilders.termQuery("subject.value", and_values[j]));
+						else
+							bool_inner.must(QueryBuilders
 								.fuzzyLikeThisQuery("subject.value")
 								.likeText(and_values[j])
-								.maxQueryTerms(50)
+								.maxQueryTerms(2)
 								);
 						
 					}
@@ -456,6 +533,15 @@ public class SearchEndpoint {
 			String location=parser.parseLocation(request);
 			if(!location.isEmpty())
 			{
+				try {
+					fuzzy = Integer.valueOf(config.getValue("fuzzy_location"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				}
 				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=location.split("OR");
@@ -466,12 +552,13 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						//bool_inner.must(QueryBuilders.termQuery("location.value", and_values[j]));
-						
-						bool_inner.must(QueryBuilders
+						if(fuzzy!=1)
+							bool_inner.must(QueryBuilders.termQuery("location.value", and_values[j]));
+						else
+							bool_inner.must(QueryBuilders
 								.fuzzyLikeThisQuery("location.value")
 								.likeText(and_values[j])
-								.maxQueryTerms(50)
+								.maxQueryTerms(2)
 								);
 					}
 					bool_q.should(bool_inner);
@@ -490,6 +577,15 @@ public class SearchEndpoint {
 			String relation=parser.parseRelation(request);
 			if(!relation.isEmpty())
 			{
+				try {
+					fuzzy = Integer.valueOf(config.getValue("fuzzy_relation"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				}
 				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=relation.split("OR");
@@ -500,12 +596,14 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						bool_inner.must(QueryBuilders
+						if(fuzzy==1)
+							bool_inner.must(QueryBuilders
 								.fuzzyLikeThisQuery("relation")
 								.likeText(and_values[j])
-								.maxQueryTerms(50)
+								.maxQueryTerms(2)
 								);
-						//bool_inner.must(QueryBuilders.termQuery("relation", and_values[j]));
+						else
+							bool_inner.must(QueryBuilders.termQuery("relation", and_values[j]));
 					}
 					bool_q.should(bool_inner);
 				}

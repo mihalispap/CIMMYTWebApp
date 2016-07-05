@@ -10,6 +10,7 @@ com/agroknow/cimmyt/controllers/FacetEndpoint.class
 com/agroknow/cimmyt/utils/BuildSearchResponse.class
 com/agroknow/cimmyt/utils/ParseGET.class
 com/agroknow/cimmyt/controllers/LanguageController.class
+com/agroknow/cimmyt/utils/GetConfig.class
 com/agroknow/cimmyt/controllers/IDEndpoint.class
 com/agroknow/cimmyt/utils/ToXML.class
 com/agroknow/cimmyt/controllers/TypeController.class

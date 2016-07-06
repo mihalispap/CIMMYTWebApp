@@ -24,7 +24,7 @@ import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -39,12 +39,12 @@ import io.swagger.annotations.ApiOperation;
 
 import org.springframework.web.bind.annotation.RequestMethod;
 
-
+@CrossOrigin
 @RestController
 public class IDEndpoint {
 
 	@ApiOperation(value = "Get entity by Id", nickname = "find entity values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/entity/{id}"/*, produces = {"application/json","application/xml"}*/)
+    @RequestMapping(method = RequestMethod.GET, path="/entity/{id}",produces="text/plain"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
@@ -116,9 +116,18 @@ public class IDEndpoint {
 		String results="";
 		
 		int size=0;
-		if(!response.getSourceAsString().isEmpty())
-			size=1;
-		
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			return "{\"total\":0,"
+					+ ",\"results\":[]"
+					+ "}";
+		}
+
 
 		String format;
 		ParseGET parser=new ParseGET();
@@ -155,7 +164,7 @@ public class IDEndpoint {
     }
 	
 	@ApiOperation(value = "Get collection by Id", nickname = "find entity values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/collection/{id}"/*, 
+    @RequestMapping(method = RequestMethod.GET, path="/collection/{id}",produces="text/plain"/*, 
     	/*produces = {MediaType.APPLICATION_JSON_UTF8_VALUE,MediaType.APPLICATION_XML_VALUE}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
@@ -253,7 +262,7 @@ public class IDEndpoint {
     
 	
 	@ApiOperation(value = "Get organization by Id", nickname = "find entity values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/organization/{id}"/*, produces = {"application/json","application/xml"}*/)
+    @RequestMapping(method = RequestMethod.GET, path="/organization/{id}",produces="text/plain"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
@@ -302,8 +311,18 @@ public class IDEndpoint {
 		String results="";
 		
 		int size=0;
-		if(!response.getSourceAsString().isEmpty())
-			size=1;
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			return "{\"total\":0,"
+					+ ",\"results\":[]"
+					+ "}";
+		}
+
 		
 
 		String format;
@@ -342,7 +361,7 @@ public class IDEndpoint {
     
 	
 	@ApiOperation(value = "Get person by Id", nickname = "find entity values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/person/{id}"/*, produces = {"application/json","application/xml"}*/)
+    @RequestMapping(method = RequestMethod.GET, path="/person/{id}",produces="text/plain"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
@@ -391,8 +410,18 @@ public class IDEndpoint {
 		String results="";
 		
 		int size=0;
-		if(!response.getSourceAsString().isEmpty())
-			size=1;
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			return "{\"total\":0,"
+					+ ",\"results\":[]"
+					+ "}";
+		}
+
 		
 
 		String format;
@@ -431,7 +460,7 @@ public class IDEndpoint {
     
 	
 	@ApiOperation(value = "Get dataset/software by Id", nickname = "find entity values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/dataset_software/{id}"/*, produces = {"application/json","application/xml"}*/)
+    @RequestMapping(method = RequestMethod.GET, path="/dataset_software/{id}",produces="text/plain"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
@@ -480,8 +509,18 @@ public class IDEndpoint {
 		String results="";
 		
 		int size=0;
-		if(!response.getSourceAsString().isEmpty())
-			size=1;
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			return "{\"total\":0,"
+					+ ",\"results\":[]"
+					+ "}";
+		}
+
 		
 
 		String format;
@@ -520,7 +559,7 @@ public class IDEndpoint {
     
 	
 	@ApiOperation(value = "Get resource by Id", nickname = "find entity values by id")
-    @RequestMapping(method = RequestMethod.GET, path="/resource/{id}"/*, produces = {"application/json","application/xml"}*/)
+    @RequestMapping(method = RequestMethod.GET, path="/resource/{id}",produces="text/plain"/*, produces = {"application/json","application/xml"}*/)
 	@ApiImplicitParams({
         @ApiImplicitParam(
         			name = "id", 
@@ -569,8 +608,18 @@ public class IDEndpoint {
 		String results="";
 		
 		int size=0;
-		if(!response.getSourceAsString().isEmpty())
-			size=1;
+		try
+		{
+			if(!response.getSourceAsString().isEmpty())
+				size=1;
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			return "{\"total\":0,"
+					+ ",\"results\":[]"
+					+ "}";
+		}
+
 		
 
 		String format;
@@ -608,245 +657,7 @@ public class IDEndpoint {
     }
     
 
-	/*
-	@ApiOperation(value = "Get full resource")
-    @RequestMapping(method = RequestMethod.GET, path="/resource/{id}")
-	@ApiImplicitParams({
-		@ApiImplicitParam(
-        			name = "id", 
-        			value = "entity's id", 
-        			required = true, 
-        			dataType = "string", 
-        			paramType = "path", 
-        			defaultValue="10883_1009")
-      })
-    String runResource(@PathVariable String id) {
-        
-    	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "agroknow").build();
-    	
-    	Client client = new TransportClient(settings)
-		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
-		System.out.println("Status:"+client.settings().toString());
-		// on shutdown
-		
-		GetResponse response = client.prepareGet("cimmyt", "resource", id)
-		        .execute()
-		        .actionGet();
-    	
-		client.close();
-		
-		String results="";
-		
-		int size=0;
-		try
-		{
-			if(!response.getSourceAsString().isEmpty())
-				size=1;
-			
-			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
-		}
-		catch(java.lang.NullPointerException e)
-		{
-			e.printStackTrace();
-			results+="{\"total\":0,results:[{}]}";
-		}
-    	return results;
-        
-    }
-
-	@ApiOperation(value = "Get full dataset/software")
-    @RequestMapping(method = RequestMethod.GET, path="/dataset_software/{id}")
-	@ApiImplicitParams({
-		@ApiImplicitParam(
-        			name = "id", 
-        			value = "entity's id", 
-        			required = true, 
-        			dataType = "string", 
-        			paramType = "path", 
-        			defaultValue="11529_10066")
-      })
-    String runDS(@PathVariable String id) {
-        
-    	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "agroknow").build();
-    	
-    	Client client = new TransportClient(settings)
-		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
-		System.out.println("Status:"+client.settings().toString());
-		// on shutdown
-		
-		GetResponse response = client.prepareGet("cimmyt", "dataset_software", id)
-		        .execute()
-		        .actionGet();
-    	
-		client.close();
-		
-		String results="";
-		
-		int size=0;
-		try
-		{
-			if(!response.getSourceAsString().isEmpty())
-				size=1;
-			
-			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
-		}
-		catch(java.lang.NullPointerException e)
-		{
-			e.printStackTrace();
-			results+="{\"total\":0,results:[{}]}";
-		}
-    	return results;
-        
-    }
-    
-
-	@ApiOperation(value = "Get person's details")
-    @RequestMapping(method = RequestMethod.GET, path="/person/{id}")
-	@ApiImplicitParams({
-		@ApiImplicitParam(
-        			name = "id", 
-        			value = "entity's id", 
-        			required = true, 
-        			dataType = "string", 
-        			paramType = "path", 
-        			defaultValue="2142792955")
-      })
-    String runPerson(@PathVariable String id) {
-        
-    	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "agroknow").build();
-    	
-    	Client client = new TransportClient(settings)
-		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
-		System.out.println("Status:"+client.settings().toString());
-		// on shutdown
-		
-		GetResponse response = client.prepareGet("cimmyt", "person", id)
-		        .execute()
-		        .actionGet();
-    	
-		client.close();
-		
-		String results="";
-		
-		int size=0;
-		try
-		{
-			if(!response.getSourceAsString().isEmpty())
-				size=1;
-			
-			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
-		}
-		catch(java.lang.NullPointerException e)
-		{
-			e.printStackTrace();
-			results+="{\"total\":0,results:[{}]}";
-		}
-    	return results;
-        
-    }
-
-
-	@ApiOperation(value = "Get organization's details")
-    @RequestMapping(method = RequestMethod.GET, path="/organization/{id}")
-	@ApiImplicitParams({
-		@ApiImplicitParam(
-        			name = "id", 
-        			value = "entity's id", 
-        			required = true, 
-        			dataType = "string", 
-        			paramType = "path", 
-        			defaultValue="1987940897")
-      })
-    String runOrganization(@PathVariable String id) {
-        
-    	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "agroknow").build();
-    	
-    	Client client = new TransportClient(settings)
-		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
-		System.out.println("Status:"+client.settings().toString());
-		// on shutdown
-		
-		GetResponse response = client.prepareGet("cimmyt", "organization", id)
-		        .execute()
-		        .actionGet();
-    	
-		client.close();
-		
-		String results="";
-		
-		int size=0;
-		try
-		{
-			if(!response.getSourceAsString().isEmpty())
-				size=1;
-			
-			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
-		}
-		catch(java.lang.NullPointerException e)
-		{
-			e.printStackTrace();
-			results+="{\"total\":0,results:[{}]}";
-		}
-    	return results;
-        
-    }
-
-
-	@ApiOperation(value = "Get collection's details")
-    @RequestMapping(method = RequestMethod.GET, path="/collection/{id}")
-	@ApiImplicitParams({
-		@ApiImplicitParam(
-        			name = "id", 
-        			value = "entity's id", 
-        			required = true, 
-        			dataType = "string", 
-        			paramType = "path", 
-        			defaultValue="403613914")
-      })
-    String runCollection(@PathVariable String id) {
-        
-    	Settings settings = ImmutableSettings.settingsBuilder()
-		        .put("cluster.name", "agroknow").build();
-    	
-    	Client client = new TransportClient(settings)
-		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
-		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
-		System.out.println("Status:"+client.settings().toString());
-		// on shutdown
-		
-		GetResponse response = client.prepareGet("cimmyt", "collection", id)
-		        .execute()
-		        .actionGet();
-    	
-		client.close();
-		
-		String results="";
-		
-		int size=0;
-		try
-		{
-			if(!response.getSourceAsString().isEmpty())
-				size=1;
-			
-			results+="{\"total\":"+size+",\"results\":[{"+response.getSourceAsString()+"}]}";
-		}
-		catch(java.lang.NullPointerException e)
-		{
-			e.printStackTrace();
-			results+="{\"total\":0,results:[{}]}";
-		}
-    	return results;
-        
-    }
-	*/
+	
 
 
 }

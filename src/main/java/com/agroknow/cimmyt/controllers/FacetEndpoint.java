@@ -17,6 +17,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,16 +31,19 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 
+@CrossOrigin
 @RestController
 public class FacetEndpoint {
 
-
-	@RequestMapping(value="/facet/entity-types", method={RequestMethod.GET})
+	
+	@RequestMapping(
+			value="/facet/entity-types", 
+			method={RequestMethod.GET},produces="text/plain")//,produces={"application/json","application/xml"})
 	@ApiOperation(value = "Facet for all entity types")
 	@ApiImplicitParams({
         @ApiImplicitParam(
     			name = "format", 
-    			value = "output format", 
+    			value = "output format (json/xml)", 
     			required = true, 
     			dataType = "string", 
     			paramType = "query",
@@ -91,7 +95,7 @@ public class FacetEndpoint {
     	return results;
         
     }
-	@RequestMapping(value="/facet/record-types", method={RequestMethod.GET})
+	@RequestMapping(value="/facet/record-types", method={RequestMethod.GET},produces="text/plain")
 	@ApiOperation(value = "Facet for all record types")
 	@ApiImplicitParams({
         @ApiImplicitParam(
@@ -115,7 +119,7 @@ public class FacetEndpoint {
 		String results="";
 				
 			TermsFacetBuilder facet =
-					FacetBuilders.termsFacet("types").field("type").size(9999);
+					FacetBuilders.termsFacet("types").field("type.raw").size(9999);
 			
 			SearchResponse response=
 					client.prepareSearch("cimmyt")
@@ -148,7 +152,7 @@ public class FacetEndpoint {
     	return results;
         
     } 
-	@RequestMapping(value="/facet/collections", method={RequestMethod.GET})
+	@RequestMapping(value="/facet/collections", method={RequestMethod.GET},produces="text/plain")
 	@ApiOperation(value = "Facet for all collections")
 	@ApiImplicitParams({
         @ApiImplicitParam(
@@ -212,7 +216,7 @@ public class FacetEndpoint {
         
     }
 
-	@RequestMapping(value="/facet/subjects", method={RequestMethod.GET})
+	@RequestMapping(value="/facet/subjects", method={RequestMethod.GET},produces="text/plain")
 	@ApiOperation(value = "Facet for all subjects")
 	@ApiImplicitParams({
         @ApiImplicitParam(
@@ -236,7 +240,7 @@ public class FacetEndpoint {
 		String results="";
 				
 			TermsFacetBuilder facet =
-					FacetBuilders.termsFacet("subjects").field("subject.value").size(9999);
+					FacetBuilders.termsFacet("subjects").field("subject.value.raw").size(9999);
 			
 			SearchResponse response=
 					client.prepareSearch("cimmyt")
@@ -271,7 +275,7 @@ public class FacetEndpoint {
 	
 
 
-	@RequestMapping(value="/facet/languages", method={RequestMethod.GET})
+	@RequestMapping(value="/facet/languages", method={RequestMethod.GET},produces="text/plain")
 	@ApiOperation(value = "Facet for languages")
 	@ApiImplicitParams({
         @ApiImplicitParam(
@@ -330,7 +334,7 @@ public class FacetEndpoint {
     }
 	
 
-	@RequestMapping(value="/facet/locations", method={RequestMethod.GET})
+	@RequestMapping(value="/facet/locations", method={RequestMethod.GET},produces="text/plain")
 	@ApiOperation(value = "Facet for all locations")
 	@ApiImplicitParams({
         @ApiImplicitParam(
@@ -354,7 +358,7 @@ public class FacetEndpoint {
 		String results="";
 				
 			TermsFacetBuilder facet =
-					FacetBuilders.termsFacet("locations").field("location.value").size(99999);
+					FacetBuilders.termsFacet("locations").field("location.value.raw").size(99999);
 			
 			SearchResponse response=
 					client.prepareSearch("cimmyt")
@@ -391,7 +395,7 @@ public class FacetEndpoint {
     }
 
 
-	@RequestMapping(value="/facet/authors", method={RequestMethod.GET})
+	@RequestMapping(value="/facet/authors", method={RequestMethod.GET},produces="text/plain")
 	@ApiOperation(value = "Facet for all authors")
 	@ApiImplicitParams({
         @ApiImplicitParam(
@@ -415,7 +419,7 @@ public class FacetEndpoint {
 		String results="";
 				
 			TermsFacetBuilder facet =
-					FacetBuilders.termsFacet("authors").field("creator.value").size(99999);
+					FacetBuilders.termsFacet("authors").field("creator.value.raw").size(99999);
 			
 			SearchResponse response=
 					client.prepareSearch("cimmyt")
@@ -449,7 +453,7 @@ public class FacetEndpoint {
         
     }
 
-	@RequestMapping(value="/facet/relations", method={RequestMethod.GET})
+	@RequestMapping(value="/facet/relations", method={RequestMethod.GET},produces="text/plain")
 	@ApiOperation(value = "Facet for all relations")
 	@ApiImplicitParams({
         @ApiImplicitParam(
@@ -473,7 +477,7 @@ public class FacetEndpoint {
 		String results="";
 			
 			TermsFacetBuilder facet =
-					FacetBuilders.termsFacet("relations").field("relation").size(99999);
+					FacetBuilders.termsFacet("relations").field("relation.raw").size(99999);
 			
 			SearchResponse response=
 					client.prepareSearch("cimmyt")

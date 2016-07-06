@@ -536,7 +536,7 @@ public class BuildSearchResponse {
 			BoolQueryBuilder build_child, int page, boolean parent_check)
 	{
 
-		System.out.println("STARTING");
+		//System.out.println("STARTING");
 		
 		SearchRequestBuilder searchRequestBuilder = new SearchRequestBuilder(client)
 	    		.setIndices("cimmyt");
@@ -673,7 +673,7 @@ public class BuildSearchResponse {
 		
 		//result=bq.toString()+result;
 		
-		System.out.println("I RAN");
+		//System.out.println("I RAN");
 		
 		return result;
 	}

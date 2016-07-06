@@ -30,6 +30,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,11 +45,12 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 
+@CrossOrigin
 @RestController
 public class SearchEndpoint {
 
 	@ApiOperation(value = "Search entities containing keyword")
-	@RequestMapping( value="/search", method={RequestMethod.GET})
+	@RequestMapping( value="/search", method={RequestMethod.GET},produces="text/plain")
 	@ApiImplicitParams({
 		@ApiImplicitParam(
     			name = "keyword", 
@@ -200,6 +202,29 @@ public class SearchEndpoint {
 			{
 				search_parent=true;
 				
+				int fuzzy_not=0;
+
+				try {
+					fuzzy_not = Integer.valueOf(config.getValue("fuzzy_not"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				}
+				
+				
+				try {
+					fuzzy = Integer.valueOf(config.getValue("fuzzy_keyword"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				}
+				
 				String or_values[]=keyword.split("OR");
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				
@@ -210,18 +235,51 @@ public class SearchEndpoint {
 					
 					for(int i=0;i<values.length;i++)
 					{
-						/*bool_inner.must(QueryBuilders
-								.queryString(values[i])
-								.field("object.title.value")
-								.field("object.description.value"));*/
+
+						boolean has_not=false;
 						
-						bool_inner.must(QueryBuilders
-								.fuzzyLikeThisQuery("object.title.value",
-										"object.description.value")
-								.likeText(values[i])
-								.maxQueryTerms(2));
+						if(values[i].contains("NOT"))
+						{
+							has_not=true;
+							values[i]=values[i].replace("NOT", "");
+						}
 						
-						
+						if(!has_not)
+						{
+							if(fuzzy==1)
+							{
+								bool_inner.must(QueryBuilders
+										.fuzzyLikeThisQuery("object.title.value",
+												"object.description.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+							}
+							else
+							{
+								bool_inner.must(QueryBuilders
+										.queryString(values[i])
+										.field("object.title.value")
+										.field("object.description.value"));
+							}
+						}
+						else
+						{
+							if(fuzzy_not==1)
+							{
+								bool_inner.mustNot(QueryBuilders
+										.fuzzyLikeThisQuery("object.title.value",
+												"object.description.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+							}
+							else
+							{
+								bool_inner.mustNot(QueryBuilders
+										.queryString(values[i])
+										.field("object.title.value")
+										.field("object.description.value"));
+							}
+						}
 						/*build_o.must(QueryBuilders
 							.queryString(values[i])
 							.field("object.title.value")
@@ -272,6 +330,18 @@ public class SearchEndpoint {
 					// TODO Auto-generated catch block
 					fuzzy=1;
 				}
+
+				int fuzzy_not=0;
+
+				try {
+					fuzzy_not = Integer.valueOf(config.getValue("fuzzy_not"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				}
 				
 				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
@@ -305,7 +375,7 @@ public class SearchEndpoint {
 						}
 						else
 						{
-							if(fuzzy!=1)
+							if(fuzzy_not!=1)
 								bool_inner.mustNot(QueryBuilders.termQuery("type", and_values[j]));
 							else
 								bool_inner.mustNot(QueryBuilders
@@ -342,6 +412,18 @@ public class SearchEndpoint {
 					fuzzy=1;
 				}
 				
+				int fuzzy_not=0;
+
+				try {
+					fuzzy_not = Integer.valueOf(config.getValue("fuzzy_not"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				}
+				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=author.split("OR");
 				for(int i=0;i<or_values.length;i++)
@@ -351,15 +433,37 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						if(fuzzy!=1)
-							bool_inner.must(QueryBuilders.termQuery("creator.value", and_values[j]));
+
+						boolean has_not=false;
+						
+						if(and_values[j].contains("NOT"))
+						{
+							has_not=true;
+							and_values[j]=and_values[j].replace("NOT", "");
+						}
+						
+						if(!has_not)
+						{
+							if(fuzzy!=1)
+								bool_inner.must(QueryBuilders.termQuery("creator.value", and_values[j]));
+							else
+								bool_inner.must(QueryBuilders
+									.fuzzyLikeThisQuery("creator.value")
+									.likeText(and_values[j])
+									.maxQueryTerms(2)
+									);
+						}
 						else
-							bool_inner.must(QueryBuilders
-								.fuzzyLikeThisQuery("creator.value")
-								.likeText(and_values[j])
-								.maxQueryTerms(2)
-								);
-					
+						{
+							if(fuzzy_not==0)
+								bool_inner.mustNot(QueryBuilders.termQuery("creator.value", and_values[j]));
+							else
+								bool_inner.mustNot(QueryBuilders
+									.fuzzyLikeThisQuery("creator.value")
+									.likeText(and_values[j])
+									.maxQueryTerms(2)
+									);
+						}
 					}
 					bool_q.should(bool_inner);
 				}
@@ -384,6 +488,18 @@ public class SearchEndpoint {
 					// TODO Auto-generated catch block
 					fuzzy=1;
 				}
+
+				int fuzzy_not=0;
+
+				try {
+					fuzzy_not = Integer.valueOf(config.getValue("fuzzy_not"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				}
 				
 				String or_values[]=collection.split("OR");
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
@@ -396,18 +512,27 @@ public class SearchEndpoint {
 					for(int i=0;i<values.length;i++)
 					{					
 						BoolQueryBuilder bool_build =QueryBuilders.boolQuery();
+
+						boolean has_not=false;
 						
-						if(fuzzy!=1)
-								bool_build.must(QueryBuilders
-											.queryString(values[i])
-											.field("object.title.value")
+						if(values[i].contains("NOT"))
+						{
+							has_not=true;
+							values[i]=values[i].replace("NOT", "");
+						}
+						
+						
+							if(fuzzy!=1)
+									bool_build.must(QueryBuilders
+												.queryString(values[i])
+												.field("object.title.value")
+											);
+							else
+									bool_build.must(QueryBuilders
+											.fuzzyLikeThisQuery("object.title.value")
+											.likeText(values[i])
+											.maxQueryTerms(2)
 										);
-						else
-								bool_build.must(QueryBuilders
-										.fuzzyLikeThisQuery("object.title.value")
-										.likeText(values[i])
-										.maxQueryTerms(2)
-									);
 						
 						bool_build.must(QueryBuilders
 										.queryString("collection")
@@ -429,9 +554,14 @@ public class SearchEndpoint {
 							for(SearchHit hit : response.getHits().getHits())
 							{
 								/*build_child*/
-								bool_inner.must(
+								if(!has_not)
+									bool_inner.must(
 										QueryBuilders.termQuery("collection.id",hit.getId())
 										);
+								else
+									bool_inner.mustNot(
+											QueryBuilders.termQuery("collection.id",hit.getId())
+											);
 								break;
 							}
 							
@@ -471,6 +601,18 @@ public class SearchEndpoint {
 					// TODO Auto-generated catch block
 					fuzzy=1;
 				}
+
+				int fuzzy_not=0;
+
+				try {
+					fuzzy_not = Integer.valueOf(config.getValue("fuzzy_not"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				}
 				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=subject.split("OR");
@@ -481,15 +623,36 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						if(fuzzy!=1)
-							bool_inner.must(QueryBuilders.termQuery("subject.value", and_values[j]));
-						else
-							bool_inner.must(QueryBuilders
-								.fuzzyLikeThisQuery("subject.value")
-								.likeText(and_values[j])
-								.maxQueryTerms(2)
-								);
+						boolean has_not=false;
 						
+						if(and_values[j].contains("NOT"))
+						{
+							has_not=true;
+							and_values[j]=and_values[j].replace("NOT", "");
+						}
+						
+						if(!has_not)
+						{
+							if(fuzzy!=1)
+								bool_inner.must(QueryBuilders.termQuery("subject.value", and_values[j]));
+							else
+								bool_inner.must(QueryBuilders
+									.fuzzyLikeThisQuery("subject.value")
+									.likeText(and_values[j])
+									.maxQueryTerms(2)
+									);
+						}
+						else
+						{
+							if(fuzzy_not!=1)
+								bool_inner.mustNot(QueryBuilders.termQuery("subject.value", and_values[j]));
+							else
+								bool_inner.mustNot(QueryBuilders
+									.fuzzyLikeThisQuery("subject.value")
+									.likeText(and_values[j])
+									.maxQueryTerms(2)
+									);
+						}
 					}
 					bool_q.should(bool_inner);
 				}
@@ -542,6 +705,18 @@ public class SearchEndpoint {
 					// TODO Auto-generated catch block
 					fuzzy=1;
 				}
+
+				int fuzzy_not=0;
+
+				try {
+					fuzzy_not = Integer.valueOf(config.getValue("fuzzy_not"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				}
 				
 				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
 				String or_values[]=location.split("OR");
@@ -552,14 +727,36 @@ public class SearchEndpoint {
 					
 					for(int j=0;j<and_values.length;j++)
 					{
-						if(fuzzy!=1)
-							bool_inner.must(QueryBuilders.termQuery("location.value", and_values[j]));
+						boolean has_not=false;
+						
+						if(and_values[j].contains("NOT"))
+						{
+							has_not=true;
+							and_values[j]=and_values[j].replace("NOT", "");
+						}
+
+						if(!has_not)
+						{
+							if(fuzzy!=1)
+								bool_inner.must(QueryBuilders.termQuery("location.value", and_values[j]));
+							else
+								bool_inner.must(QueryBuilders
+									.fuzzyLikeThisQuery("location.value")
+									.likeText(and_values[j])
+									.maxQueryTerms(2)
+									);
+						}
 						else
-							bool_inner.must(QueryBuilders
-								.fuzzyLikeThisQuery("location.value")
-								.likeText(and_values[j])
-								.maxQueryTerms(2)
-								);
+						{
+							if(fuzzy_not!=1)
+								bool_inner.mustNot(QueryBuilders.termQuery("location.value", and_values[j]));
+							else
+								bool_inner.mustNot(QueryBuilders
+									.fuzzyLikeThisQuery("location.value")
+									.likeText(and_values[j])
+									.maxQueryTerms(2)
+									);
+						}
 					}
 					bool_q.should(bool_inner);
 				}

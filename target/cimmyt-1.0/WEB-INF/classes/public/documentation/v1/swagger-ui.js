@@ -566,7 +566,7 @@ this["Handlebars"]["templates"]["operation"] = Handlebars.template({"1":function
   },"19":function(depth0,helpers,partials,data) {
   return "";
 },"21":function(depth0,helpers,partials,data) {
-  return "          <div class='sandbox_header'>\n            <input class='submit' type='submit' value='Try it out!' data-sw-translate/>\n            <a href='#' class='response_hider' style='display:none' data-sw-translate>Hide Response</a>\n            <span class='response_throbber' style='display:none'></span>\n          </div>\n";
+  return "          <div class='sandbox_header'>\n            <input class='submit' type='submit' value='Try it out!' data-sw-translate/>\n            <a href='#' class='response_hider' style='display:none' data-sw-translate>Hide Response</a>\n      <a href='#' class='response_downloader' download='cimmyt.response' style='display:none;text-align: center;cursor: default;color: buttontext;background-color: buttonface;border: 1px solid #ccc;padding: 10px;' data-sw-translate>Download Response</a>\n            <span class='response_throbber' style='display:none'></span>\n          </div>\n";
   },"23":function(depth0,helpers,partials,data) {
   return "          <h4 data-sw-translate>Request Headers</h4>\n          <div class='block request_headers'></div>\n";
   },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
@@ -20034,6 +20034,7 @@ SwaggerUi.Views.OperationView = Backbone.View.extend({
     'submit .sandbox'         : 'submitOperation',
     'click .submit'           : 'submitOperation',
     'click .response_hider'   : 'hideResponse',
+    //'click .response_downloader'   : 'downloadResponse',
     'click .toggleOperation'  : 'toggleOperationContent',
     'mouseenter .api-ic'      : 'mouseEnter',
     'dblclick .curl'          : 'selectText',
@@ -20472,6 +20473,99 @@ SwaggerUi.Views.OperationView = Backbone.View.extend({
         $('.request_url', $(this.el)).html('<pre></pre>');
         $('.request_url pre', $(this.el)).text(this.invocationUrl);
 
+		
+
+        opts.useJQuery = true;
+        map.parameterContentType = 'multipart/form-data';
+        this.map = map;
+        return this.model.execute(map, opts, this.showCompleteStatus, this.showErrorStatus, this);
+      } else {
+        this.map = map;
+        return this.model.execute(map, opts, this.showCompleteStatus, this.showErrorStatus, this);
+      }
+    }
+  },
+  
+  downloadResponse: function(e) {
+  
+  	console.log("Entered download area...");
+  
+    var error_free, form, isFileUpload, map, opts;
+    if (e !== null) {
+      e.preventDefault();
+    }
+    form = $('.sandbox', $(this.el));
+    error_free = true;
+    form.find('input.required').each(function() {
+      $(this).removeClass('error');
+      if (jQuery.trim($(this).val()) === '') {
+        $(this).addClass('error');
+        $(this).wiggle({
+          callback: (function(_this) {
+            return function() {
+              $(_this).focus();
+            };
+          })(this)
+        });
+        error_free = false;
+      }
+    });
+    form.find('textarea.required:visible').each(function() {
+      $(this).removeClass('error');
+      if (jQuery.trim($(this).val()) === '') {
+        $(this).addClass('error');
+        $(this).wiggle({
+          callback: (function(_this) {
+            return function() {
+              return $(_this).focus();
+            };
+          })(this)
+        });
+        error_free = false;
+      }
+    });
+    form.find('select.required').each(function() {
+      $(this).removeClass('error');
+      if (this.selectedIndex === -1) {
+        $(this).addClass('error');
+        $(this).wiggle({
+          callback: (function(_this) {
+            return function() {
+              $(_this).focus();
+            };
+          })(this)
+        });
+        error_free = false;
+      }
+    });
+    if (error_free) {
+      map = this.getInputMap(form);
+      isFileUpload = this.isFileUpload(form);
+      opts = {
+        parent: this
+      };
+      if (this.options.swaggerOptions) {
+        for(var key in this.options.swaggerOptions) {
+          opts[key] = this.options.swaggerOptions[key];
+        }
+      }
+
+      var pi;
+      for(pi = 0; pi < this.model.parameters.length; pi++){
+        var p = this.model.parameters[pi];
+        if( p.jsonEditor && p.jsonEditor.isEnabled()){
+          var json = p.jsonEditor.getValue();
+          map[p.name] = JSON.stringify(json);
+        }
+      }
+
+      opts.responseContentType = $('div select[name=responseContentType]', $(this.el)).val();
+      opts.requestContentType = $('div select[name=parameterContentType]', $(this.el)).val();
+      $('.response_throbber', $(this.el)).show();
+      if (isFileUpload) {
+        $('.request_url', $(this.el)).html('<pre></pre>');
+        $('.request_url pre', $(this.el)).text(this.invocationUrl);
+
         opts.useJQuery = true;
         map.parameterContentType = 'multipart/form-data';
         this.map = map;
@@ -20790,6 +20884,11 @@ SwaggerUi.Views.OperationView = Backbone.View.extend({
     var response_body = pre;
     $('.request_url', $(this.el)).html('<pre></pre>');
     $('.request_url pre', $(this.el)).text(url);
+    
+    $('.response_downloader').attr("href",url);
+    $('.response_downloader').css("display","inline");
+    
+    
     $('.response_code', $(this.el)).html('<pre>' + response.status + '</pre>');
     $('.response_body', $(this.el)).html(response_body);
     $('.response_headers', $(this.el)).html('<pre>' + _.escape(JSON.stringify(response.headers, null, '  ')).replace(/\n/g, '<br>') + '</pre>');

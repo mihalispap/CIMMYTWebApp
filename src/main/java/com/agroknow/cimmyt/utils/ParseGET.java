@@ -262,6 +262,29 @@ public class ParseGET {
 		
 	}
 
+	public String parseKeywordEnhanced(HttpServletRequest request)
+	{
+		Enumeration<String> params=request.getParameterNames();
+		String param="", param_value="";
+		
+		String keyword="";
+		
+		while(params.hasMoreElements())
+		{
+			param=params.nextElement();
+			param_value=request.getParameter(param);
+			
+			if(param.equalsIgnoreCase("freetext"))
+			{
+				//title=StringUtils.trim(param_value);
+				return param_value;
+			}
+		}
+		
+		return "";
+		
+	}
+
 	public String parseCollectionID(HttpServletRequest request)
 	{
 		Enumeration<String> params=request.getParameterNames();

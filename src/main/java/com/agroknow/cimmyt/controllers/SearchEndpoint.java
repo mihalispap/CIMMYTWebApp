@@ -53,6 +53,13 @@ public class SearchEndpoint {
 	@RequestMapping( value="/search", method={RequestMethod.GET},produces="text/plain")
 	@ApiImplicitParams({
 		@ApiImplicitParam(
+    			name = "freetext", 
+    			value = "search entities based on: title, abstract, author, location, subject", 
+    			required = false, 
+    			dataType = "string", 
+    			paramType = "query", 
+    			defaultValue="crossa"),
+		@ApiImplicitParam(
     			name = "keyword", 
     			value = "keyword to search entities against", 
     			required = false, 
@@ -190,13 +197,235 @@ public class SearchEndpoint {
 
 			BoolQueryBuilder build_o =QueryBuilders.boolQuery();
 			BoolQueryBuilder build_child =QueryBuilders.boolQuery();
-
+			BoolQueryBuilder build_enhanced=QueryBuilders.boolQuery();
+			
+			
 		    List<FilterBuilder> filters=new LinkedList<>();
 		    
 		    GetConfig config=new GetConfig();
 			int fuzzy;
 				
-		    
+
+			String keywordE=parser.parseKeywordEnhanced(request);
+			if(!keywordE.isEmpty())
+			{
+				//search_parent=true;
+				
+				int fuzzy_not=0;
+
+				try {
+					fuzzy_not = Integer.valueOf(config.getValue("fuzzy_not"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy_not=0;
+				}
+				
+				
+				try {
+					fuzzy = Integer.valueOf(config.getValue("fuzzy_keyword"));
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					fuzzy=1;
+				}
+				
+				BoolQueryBuilder bool_qN=QueryBuilders.boolQuery();
+				/*bool_qN.must(QueryBuilders
+						.fuzzyLikeThisQuery("creator.value",
+								"object.title.value")
+						.likeText(keywordE)
+						.maxQueryTerms(2));*/
+				/*
+				bool_qN.should(QueryBuilders
+						.fuzzyLikeThisQuery("title.value")
+						.likeText(keywordE)
+						.maxQueryTerms(2));
+
+				bool_qN.should(QueryBuilders
+						.fuzzyLikeThisQuery("description.value")
+						.likeText(keywordE)
+						.maxQueryTerms(2));
+				
+				bool_qN.should(QueryBuilders
+						.fuzzyLikeThisQuery("creator.value")
+						.likeText(keywordE)
+						.maxQueryTerms(2));
+
+				bool_qN.should(QueryBuilders
+						.fuzzyLikeThisQuery("location.value")
+						.likeText(keywordE)
+						.maxQueryTerms(2));
+				
+				bool_qN.should(QueryBuilders
+						.fuzzyLikeThisQuery("subject.value")
+						.likeText(keywordE)
+						.maxQueryTerms(2));
+				
+				
+				build_enhanced.must(bool_qN);
+				
+				System.out.println(build_enhanced.toString());
+				*/
+				String or_values[]=keywordE.split("OR");
+				BoolQueryBuilder bool_q=QueryBuilders.boolQuery();
+				
+				for(int j=0;j<or_values.length;j++)
+				{
+					BoolQueryBuilder bool_inner=QueryBuilders.boolQuery();
+					String values[]=or_values[j].split("AND");
+					
+					for(int i=0;i<values.length;i++)
+					{
+
+						//System.out.println(values[i]);
+						boolean has_not=false;
+						
+						BoolQueryBuilder bool_beta=QueryBuilders.boolQuery();
+						
+						if(values[i].contains("NOT"))
+						{
+							has_not=true;
+							values[i]=values[i].replace("NOT", "");
+						}
+						
+						if(!has_not)
+						{
+							if(fuzzy==1)
+							{
+								bool_beta.should(QueryBuilders
+										.fuzzyLikeThisQuery("object.title.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+
+								bool_beta.should(QueryBuilders
+										.fuzzyLikeThisQuery("object.description.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+								
+								bool_beta.should(QueryBuilders
+										.fuzzyLikeThisQuery("creator.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+
+								bool_beta.should(QueryBuilders
+										.fuzzyLikeThisQuery("location.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+								
+								bool_beta.should(QueryBuilders
+										.fuzzyLikeThisQuery("subject.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+								
+								
+								bool_inner.must(bool_beta);
+								
+							}
+							else
+							{
+								bool_beta.should(QueryBuilders
+										.queryString(values[i])
+										.field("object.title.value"));
+
+								bool_beta.should(QueryBuilders
+										.queryString(values[i])
+										.field("object.description.value"));
+								
+								bool_beta.should(QueryBuilders
+										.queryString(values[i])
+										.field("creator.value"));
+
+								bool_beta.should(QueryBuilders
+										.queryString(values[i])
+										.field("location.value"));
+								
+								bool_beta.should(QueryBuilders
+										.queryString(values[i])
+										.field("subject.value"));
+								
+								
+								bool_inner.must(bool_beta);
+								
+							}
+						}
+						else
+						{
+							if(fuzzy_not==1)
+							{
+								
+								bool_beta.mustNot(QueryBuilders
+										.fuzzyLikeThisQuery("object.title.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+
+								bool_beta.mustNot(QueryBuilders
+										.fuzzyLikeThisQuery("object.description.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+								
+								bool_beta.mustNot(QueryBuilders
+										.fuzzyLikeThisQuery("creator.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+
+								bool_beta.mustNot(QueryBuilders
+										.fuzzyLikeThisQuery("location.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+								
+								bool_beta.mustNot(QueryBuilders
+										.fuzzyLikeThisQuery("subject.value")
+										.likeText(values[i])
+										.maxQueryTerms(2));
+								
+								
+								bool_inner.must(bool_beta);
+								
+							}
+							else
+							{
+
+								bool_beta.mustNot(QueryBuilders
+										.queryString(values[i])
+										.field("object.title.value"));
+
+								bool_beta.mustNot(QueryBuilders
+										.queryString(values[i])
+										.field("object.description.value"));
+								
+								bool_beta.mustNot(QueryBuilders
+										.queryString(values[i])
+										.field("creator.value"));
+
+								bool_beta.mustNot(QueryBuilders
+										.queryString(values[i])
+										.field("location.value"));
+								
+								bool_beta.mustNot(QueryBuilders
+										.queryString(values[i])
+										.field("subject.value"));
+								
+								
+								bool_inner.must(bool_beta);
+							}
+						}
+						
+					}
+					
+					bool_q.should(bool_inner);
+				}
+				//build_o.must(bool_q);
+				
+				//System.out.println(bool_q.toString());
+				
+				build_enhanced.must(bool_q);
+			}
+
 			String keyword=parser.parseKeyword(request);
 			if(!keyword.isEmpty())
 			{
@@ -253,6 +482,7 @@ public class SearchEndpoint {
 												"object.description.value")
 										.likeText(values[i])
 										.maxQueryTerms(2));
+								
 							}
 							else
 							{
@@ -852,7 +1082,8 @@ public class SearchEndpoint {
 			BuildSearchResponse builder=new BuildSearchResponse();
 			//results=builder.buildFrom(client,build_o,filters,page,search_parent);
 			
-			results=builder.buildFrom_beta(client,build_o,build_child,page,search_parent);
+			results=builder.buildFrom_beta(client,build_o,build_child,
+					page,search_parent, build_enhanced);
 
 		client.close();
 		

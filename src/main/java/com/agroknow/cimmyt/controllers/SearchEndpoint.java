@@ -14,6 +14,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilder;
@@ -204,6 +205,16 @@ public class SearchEndpoint {
 		    
 		    GetConfig config=new GetConfig();
 			int fuzzy;
+			
+			
+			float similarity;
+			try{
+				similarity=Double.valueOf(config.getValue("similarity")).floatValue();
+			}
+			catch(Exception e)
+			{
+				similarity=(float) 0.75;
+			}
 				
 
 			String keywordE=parser.parseKeywordEnhanced(request);
@@ -299,26 +310,31 @@ public class SearchEndpoint {
 							{
 								bool_beta.should(QueryBuilders
 										.fuzzyLikeThisQuery("object.title.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 
 								bool_beta.should(QueryBuilders
 										.fuzzyLikeThisQuery("object.description.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 								
 								bool_beta.should(QueryBuilders
 										.fuzzyLikeThisQuery("creator.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 
 								bool_beta.should(QueryBuilders
 										.fuzzyLikeThisQuery("location.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 								
 								bool_beta.should(QueryBuilders
 										.fuzzyLikeThisQuery("subject.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 								
@@ -360,26 +376,31 @@ public class SearchEndpoint {
 								
 								bool_beta.mustNot(QueryBuilders
 										.fuzzyLikeThisQuery("object.title.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 
 								bool_beta.mustNot(QueryBuilders
 										.fuzzyLikeThisQuery("object.description.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 								
 								bool_beta.mustNot(QueryBuilders
 										.fuzzyLikeThisQuery("creator.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 
 								bool_beta.mustNot(QueryBuilders
 										.fuzzyLikeThisQuery("location.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 								
 								bool_beta.mustNot(QueryBuilders
 										.fuzzyLikeThisQuery("subject.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 								
@@ -480,6 +501,7 @@ public class SearchEndpoint {
 								bool_inner.must(QueryBuilders
 										.fuzzyLikeThisQuery("object.title.value",
 												"object.description.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 								
@@ -499,6 +521,7 @@ public class SearchEndpoint {
 								bool_inner.mustNot(QueryBuilders
 										.fuzzyLikeThisQuery("object.title.value",
 												"object.description.value")
+										.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 										.likeText(values[i])
 										.maxQueryTerms(2));
 							}
@@ -599,6 +622,7 @@ public class SearchEndpoint {
 							else
 								bool_inner.must(QueryBuilders
 									.fuzzyLikeThisQuery("type")
+									.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 									.likeText(and_values[j])
 									.maxQueryTerms(2)
 									);
@@ -610,6 +634,7 @@ public class SearchEndpoint {
 							else
 								bool_inner.mustNot(QueryBuilders
 									.fuzzyLikeThisQuery("type")
+									.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 									.likeText(and_values[j])
 									.maxQueryTerms(2)
 									);
@@ -675,12 +700,14 @@ public class SearchEndpoint {
 						if(!has_not)
 						{
 							if(fuzzy!=1)
-								bool_inner.must(QueryBuilders.termQuery("creator.value", and_values[j]));
+								bool_inner.must(QueryBuilders.termQuery("creator.value", 
+										and_values[j]));
 							else
 								bool_inner.must(QueryBuilders
 									.fuzzyLikeThisQuery("creator.value")
+									.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 									.likeText(and_values[j])
-									.maxQueryTerms(2)
+									.maxQueryTerms(25)
 									);
 						}
 						else
@@ -690,6 +717,7 @@ public class SearchEndpoint {
 							else
 								bool_inner.mustNot(QueryBuilders
 									.fuzzyLikeThisQuery("creator.value")
+									.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 									.likeText(and_values[j])
 									.maxQueryTerms(2)
 									);
@@ -760,6 +788,7 @@ public class SearchEndpoint {
 							else
 									bool_build.must(QueryBuilders
 											.fuzzyLikeThisQuery("object.title.value")
+											.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 											.likeText(values[i])
 											.maxQueryTerms(2)
 										);
@@ -868,6 +897,7 @@ public class SearchEndpoint {
 							else
 								bool_inner.must(QueryBuilders
 									.fuzzyLikeThisQuery("subject.value")
+									.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 									.likeText(and_values[j])
 									.maxQueryTerms(2)
 									);
@@ -879,6 +909,7 @@ public class SearchEndpoint {
 							else
 								bool_inner.mustNot(QueryBuilders
 									.fuzzyLikeThisQuery("subject.value")
+									.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 									.likeText(and_values[j])
 									.maxQueryTerms(2)
 									);
@@ -972,6 +1003,7 @@ public class SearchEndpoint {
 							else
 								bool_inner.must(QueryBuilders
 									.fuzzyLikeThisQuery("location.value")
+									.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 									.likeText(and_values[j])
 									.maxQueryTerms(2)
 									);
@@ -983,6 +1015,7 @@ public class SearchEndpoint {
 							else
 								bool_inner.mustNot(QueryBuilders
 									.fuzzyLikeThisQuery("location.value")
+									.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 									.likeText(and_values[j])
 									.maxQueryTerms(2)
 									);
@@ -1026,6 +1059,7 @@ public class SearchEndpoint {
 						if(fuzzy==1)
 							bool_inner.must(QueryBuilders
 								.fuzzyLikeThisQuery("relation")
+								.fuzziness(Fuzziness.fromSimilarity((float) similarity))
 								.likeText(and_values[j])
 								.maxQueryTerms(2)
 								);

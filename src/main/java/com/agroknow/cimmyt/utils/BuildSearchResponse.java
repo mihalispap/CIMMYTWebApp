@@ -110,6 +110,8 @@ public class BuildSearchResponse {
 			ids[total]=hit.getId();
 			total++;
 			
+
+			
 			/*try
 			{
 				ids[total]=hit.getId();
@@ -130,7 +132,18 @@ public class BuildSearchResponse {
 			GetResponse specific = client.prepareGet("cimmyt", "object", id)
 			        .execute()
 			        .actionGet();
-			hits+=specific.getSourceAsString();
+			
+			//hits+="{\"score\":"+hit.getScore()+",";
+
+			StringBuilder source_value=new StringBuilder(specific.getSourceAsString());
+			
+			source_value.replace(specific.getSourceAsString().lastIndexOf("}"), 
+					specific.getSourceAsString().lastIndexOf("}") + 1,
+					",\"score\":"+hit.getScore()+
+						"}" );
+						
+			//hits+=specific.getSourceAsString();
+			hits+=source_value.toString();
 			hits+=",";
 		}
 

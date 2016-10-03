@@ -16,6 +16,7 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.HasParentQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -27,6 +28,9 @@ import org.elasticsearch.search.facet.Facet;
 import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacetBuilder;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 public class BuildSearchResponse {
 
@@ -47,7 +51,7 @@ public class BuildSearchResponse {
 
 		BoolQueryBuilder bq=QueryBuilders.boolQuery();
 		
-		
+		/*TOREMEMBER: this is done so as to not fetch objects in generic queries!*/
 		if(!build_o.hasClauses() && !build_child.hasClauses() && !build_enhanced.hasClauses())
 			parent_check=true;
 		
@@ -133,13 +137,92 @@ public class BuildSearchResponse {
 			        .execute()
 			        .actionGet();
 			
+			HasParentQueryBuilder qb_p=QueryBuilders.hasParentQuery("object",
+					QueryBuilders.matchQuery("appid", id));
+
+			SearchResponse responseSpecific=client
+					.prepareSearch("cimmyt")
+					.setQuery(qb)
+					//.setSize(1)
+					.execute()
+					.actionGet();
+			
+			String detailed="{}"; 
+			String collections="";
+			try
+			{
+				SearchHit sh = responseSpecific.getHits().getHits()[0];
+				
+				detailed=sh.getSourceAsString();
+				
+				JSONObject json_e=(JSONObject)new JSONParser().parse(detailed);
+				
+				try
+				{
+					JSONArray json_a=(JSONArray) json_e.get("collection");
+					
+					if(json_a.size()>0)
+					{
+						collections+=",\"collections\":[";
+						for(int i=0;i<json_a.size();i++)
+						{
+							String cid=((JSONObject)json_a.get(i)).get("id").toString();
+						
+							HasParentQueryBuilder qb_p_c=QueryBuilders.hasParentQuery("object",
+								QueryBuilders.matchQuery("appid", cid));
+	
+							SearchResponse responseSpecificC=client
+									.prepareSearch("cimmyt")
+									.setQuery(qb_p_c)
+									//.setSize(1)
+									.execute()
+									.actionGet();
+							
+							collections+=""+responseSpecificC.getHits()
+								.getHits()[0].sourceAsString()+"";
+							
+							if(i!=json_a.size()-1)
+								collections+=",";
+						}
+						collections+="]";
+					}
+				}
+				catch(Exception e)
+				{
+					JSONObject json_o=(JSONObject) json_e.get("collection");
+					String cid=json_o.get("id").toString();
+					
+					HasParentQueryBuilder qb_p_c=QueryBuilders.hasParentQuery("object",
+							QueryBuilders.matchQuery("appid", cid));
+
+					SearchResponse responseSpecificC=client
+							.prepareSearch("cimmyt")
+							.setQuery(qb_p_c)
+							//.setSize(1)
+							.execute()
+							.actionGet();
+					
+					String s_hit=responseSpecificC.getHits()
+							.getHits()[0].sourceAsString();
+					
+					collections+=",\"collections\":["+s_hit+"]";
+				}
+				
+			}
+			catch(Exception e)
+			{
+				//detailed="{}";
+			}
 			//hits+="{\"score\":"+hit.getScore()+",";
 
+			
 			StringBuilder source_value=new StringBuilder(specific.getSourceAsString());
 			
 			source_value.replace(specific.getSourceAsString().lastIndexOf("}"), 
 					specific.getSourceAsString().lastIndexOf("}") + 1,
 					",\"score\":"+hit.getScore()+
+					",\"detailed\":"+detailed+
+					collections+
 						"}" );
 						
 			//hits+=specific.getSourceAsString();

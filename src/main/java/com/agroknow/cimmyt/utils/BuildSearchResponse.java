@@ -142,10 +142,12 @@ public class BuildSearchResponse {
 
 			SearchResponse responseSpecific=client
 					.prepareSearch("cimmyt")
-					.setQuery(qb)
+					.setQuery(qb_p)
 					//.setSize(1)
 					.execute()
 					.actionGet();
+			
+			System.out.println("Searching for id:"+id+" #of results:"+responseSpecific.getHits().getHits().length);
 			
 			String detailed="{}"; 
 			String collections="";

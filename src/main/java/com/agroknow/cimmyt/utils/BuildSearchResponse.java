@@ -165,7 +165,7 @@ public class BuildSearchResponse {
 					
 					if(json_a.size()>0)
 					{
-						collections+=",\"collections\":[";
+						collections+=",\"collections1\":[";
 						for(int i=0;i<json_a.size();i++)
 						{
 							String cid=((JSONObject)json_a.get(i)).get("id").toString();
@@ -180,10 +180,15 @@ public class BuildSearchResponse {
 									.execute()
 									.actionGet();
 							
+							if(responseSpecificC.getHits()
+									.getHits().length==0)
+								continue;
+							
 							collections+=""+responseSpecificC.getHits()
 								.getHits()[0].sourceAsString()+"";
 							
-							if(i!=json_a.size()-1)
+							if(i!=json_a.size()-1 && !responseSpecificC.getHits()
+									.getHits()[0].sourceAsString().isEmpty())
 								collections+=",";
 						}
 						collections+="]";
@@ -191,6 +196,7 @@ public class BuildSearchResponse {
 				}
 				catch(Exception e)
 				{
+					e.printStackTrace();
 					JSONObject json_o=(JSONObject) json_e.get("collection");
 					String cid=json_o.get("id").toString();
 					

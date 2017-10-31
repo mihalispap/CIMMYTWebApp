@@ -157,7 +157,7 @@ public class SearchEndpoint {
 		        .put("cluster.name", "agroknow").build();
 		
 		Client client = new TransportClient(settings)
-		        .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+		        .addTransportAddress(new InetSocketTransportAddress("52.18.30.225", 9300));
 		        //.addTransportAddress(new InetSocketTransportAddress("host2", 9300));
 		//System.out.println("Status:"+client.settings().toString());
 		// on shutdown
